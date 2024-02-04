@@ -1,4 +1,4 @@
-package models;
+package com.wireguard.insidepacker_android.models.FragmentModel;
 
 import androidx.fragment.app.Fragment;
 

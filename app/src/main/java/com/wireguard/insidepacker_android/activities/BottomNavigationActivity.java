@@ -11,13 +11,12 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.wireguard.insidepacker_android.R;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import adapters.ViewPagerAdapter;
 import fragments.HomeFragment;
 import fragments.SettingsFragment;
 import fragments.SupportFragment;
-import models.FragmentModel;
+import com.wireguard.insidepacker_android.models.FragmentModel.FragmentModel;
 
 public class BottomNavigationActivity extends AppCompatActivity {
 

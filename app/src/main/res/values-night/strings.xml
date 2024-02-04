@@ -5,8 +5,8 @@
     <string name="sign_in">Sign In</string>
     <string name="app_icon_image_view">app_icon_image_view</string>
     <string name="or">or</string>
-    <string name="password_text_field_hint">Enter Password</string>
-    <string name="email_text_field_hint">Enter Email</string>
+    <string name="password_text_field_hint">Password</string>
+    <string name="email_text_field_hint">User Name</string>
     <string name="unseen_icon">unseen_icon</string>
     <string name="google_icon">google icon</string>
     <string name="sign_in_with_google">Sign in with Google</string>

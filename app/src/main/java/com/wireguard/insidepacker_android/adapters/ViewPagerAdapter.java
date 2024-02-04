@@ -7,7 +7,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 
 import java.util.List;
 
-import models.FragmentModel;
+import com.wireguard.insidepacker_android.models.FragmentModel.FragmentModel;
 
 public class ViewPagerAdapter extends FragmentPagerAdapter {
     List<FragmentModel> fragments;

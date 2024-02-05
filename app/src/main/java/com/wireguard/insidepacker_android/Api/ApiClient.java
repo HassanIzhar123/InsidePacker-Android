@@ -3,6 +3,7 @@ package com.wireguard.insidepacker_android.Api;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
+
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -12,13 +13,18 @@ import com.android.volley.toolbox.Volley;
 import com.wireguard.insidepacker_android.DataStructure.StaticData;
 import com.wireguard.insidepacker_android.Interfaces.VolleyCallback;
 import com.wireguard.insidepacker_android.models.BasicInformation.BasicInformation;
+
 import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -91,7 +97,12 @@ public class ApiClient {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    callback.onError(error.getMessage());
+                    String body;
+                    if (error.networkResponse.data != null) {
+                        body = new String(error.networkResponse.data, StandardCharsets.UTF_8);
+                        callback.onError(body);
+                    }
+
                 }
             }) {
                 @Override

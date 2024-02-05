@@ -2,7 +2,6 @@ package com.wireguard.insidepacker_android.Api;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -12,11 +11,9 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.wireguard.insidepacker_android.DataStructure.StaticData;
 import com.wireguard.insidepacker_android.Interfaces.VolleyCallback;
-import com.wireguard.insidepacker_android.models.BasicInformation.BasicInformation;
 
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -31,7 +28,6 @@ import javax.net.ssl.X509TrustManager;
 
 public class ApiClient {
 
-    private static final String BASE_URL = StaticData.baseUrl;
     private static ApiClient instance;
     private final RequestQueue requestQueue;
     private final Context ctx;
@@ -84,11 +80,8 @@ public class ApiClient {
         getRequestQueue().add(req);
     }
 
-    public void getAccessToken(BasicInformation basicInformation, final VolleyCallback callback) {
+    public void postRequest(String url, JSONObject object, final VolleyCallback callback) {
         try {
-            String url = BASE_URL + "get_token";
-            String json = basicInformation.toJson();
-            JSONObject object = new JSONObject(json);
             JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, object, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
@@ -98,11 +91,14 @@ public class ApiClient {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     String body;
-                    if (error.networkResponse.data != null) {
-                        body = new String(error.networkResponse.data, StandardCharsets.UTF_8);
-                        callback.onError(body);
+                    if (error != null) {
+                        if (error.networkResponse.data != null) {
+                            body = new String(error.networkResponse.data, StandardCharsets.UTF_8);
+                            callback.onError(body);
+                        }
+                    } else {
+                        callback.onError("Error");
                     }
-
                 }
             }) {
                 @Override
@@ -120,4 +116,38 @@ public class ApiClient {
     }
 
 
+    public void getRequest(String url, VolleyCallback callback) {
+        try {
+            JsonObjectRequest request = new JsonObjectRequest(url, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    callback.onSuccess(response);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    String body;
+                    if (error != null) {
+                        if (error.networkResponse.data != null) {
+                            body = new String(error.networkResponse.data, StandardCharsets.UTF_8);
+                            callback.onError(body);
+                        }
+                    } else {
+                        callback.onError("Error");
+                    }
+                }
+            }) {
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Content-Type", "application/json");
+                    return headers;
+                }
+            };
+            addToRequestQueue(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            callback.onError(e.getMessage());
+        }
+    }
 }

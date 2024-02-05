@@ -1,10 +1,17 @@
 package com.wireguard.insidepacker_android.activities;
 
+import static com.wireguard.insidepacker_android.utils.SharedPrefsName._ACCESS_TOKEN;
+import static com.wireguard.insidepacker_android.utils.SharedPrefsName._PREFS_NAME;
+import static com.wireguard.insidepacker_android.utils.SharedPrefsName._USER_INFORMATION;
+
 import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
+import android.text.method.HideReturnsTransformationMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,36 +19,35 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.wireguard.insidepacker_android.R;
-import com.wireguard.insidepacker_android.ViewModels.SignInViewModel;
+import com.wireguard.insidepacker_android.ViewModels.SignInViewModel.SignInViewModel;
+import com.wireguard.insidepacker_android.models.AccessToken.AccessToken;
 import com.wireguard.insidepacker_android.models.BasicInformation.BasicInformation;
-import com.wireguard.insidepacker_android.models.StateModel.StateData;
+import com.wireguard.insidepacker_android.utils.PreferenceManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class SignInActivity extends AppCompatActivity {
     Button signInButton;
+    ImageButton unseenBtn;
     EditText userNameEditText, passwordEditText;
+    AppCompatActivity mContext;
     SignInViewModel signInViewModel;
+    Dialog progressDialog;
+    BasicInformation basicInformation = new BasicInformation();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
-        signInViewModel = new ViewModelProvider(SignInActivity.this).get(SignInViewModel.class);
+        mContext = this;
+        signInViewModel = new ViewModelProvider(mContext).get(SignInViewModel.class);
         signInButton = findViewById(R.id.sign_in_btn);
+        unseenBtn = findViewById(R.id.unseen_btn);
         userNameEditText = findViewById(R.id.email_edittext);
         passwordEditText = findViewById(R.id.password_edittext);
         OnInitListener();
-    }
-
-    private Dialog showProgressDialog() {
-        Dialog dialog = new Dialog(SignInActivity.this);
-        dialog.requestWindowFeature(1);
-        dialog.setContentView(R.layout.loading_process_dialog);
-        dialog.setCancelable(false);
-        dialog.show();
-        return dialog;
+        initializeViewModels();
     }
 
     private void OnInitListener() {
@@ -71,46 +77,64 @@ public class SignInActivity extends AppCompatActivity {
                 }
             }
         });
+        unseenBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (passwordEditText.getTransformationMethod().equals(HideReturnsTransformationMethod.getInstance())) {
+                    passwordEditText.setTransformationMethod(android.text.method.PasswordTransformationMethod.getInstance());
+                } else {
+                    passwordEditText.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                }
+            }
+        });
+
     }
 
-    private void OnInit(String actualUserName, String demo, String password) {
-        Dialog progressDialog = showProgressDialog();
+    private BasicInformation setBasicInformation(String actualUserName, String demo, String password) {
+        basicInformation.setUsername(actualUserName);
+        basicInformation.setPassword(password);
+        basicInformation.setTenantName(demo);
+        return basicInformation;
+    }
 
-        signInViewModel.getAccessToken(setBasicInformation(actualUserName, demo, password)).observe(SignInActivity.this, new Observer<StateData<?>>() {
+    private Dialog showProgressDialog() {
+        Dialog dialog = new Dialog(SignInActivity.this);
+        dialog.requestWindowFeature(1);
+        dialog.setContentView(R.layout.loading_process_dialog);
+        dialog.setCancelable(false);
+        return dialog;
+    }
+
+    private void initializeViewModels() {
+        progressDialog = showProgressDialog();
+        signInViewModel.getAccessTokenMutableLiveData().observe(mContext, new Observer<AccessToken>() {
             @Override
-            public void onChanged(StateData<?> stateData) {
-                switch (stateData.getStatus()) {
-                    case SUCCESS:
-                        String accessToken = (String) stateData.getData();
-                        Toast.makeText(SignInActivity.this, "Success", Toast.LENGTH_SHORT).show();
-                        break;
-                    case ERROR:
-                        try {
-                            assert stateData.getError() != null;
-                            JSONObject object = new JSONObject(stateData.getError());
-
-                            Toast.makeText(SignInActivity.this, object.getString("detail"), Toast.LENGTH_SHORT).show();
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        }
-                        break;
-                    case LOADING:
-                        //TODO: Do Loading stuff
-                        break;
-                    case COMPLETE:
-                        //TODO: Do complete stuff if necessary
-                        break;
+            public void onChanged(AccessToken accessToken) {
+                PreferenceManager<String> stringPreferenceManager = new PreferenceManager<>(getApplicationContext(), _PREFS_NAME);
+                stringPreferenceManager.saveValue(_USER_INFORMATION, basicInformation.toJson());
+                stringPreferenceManager.saveValue(_ACCESS_TOKEN, accessToken.getAccess_token());
+                progressDialog.dismiss();
+                Toast.makeText(SignInActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(SignInActivity.this, BottomNavigationActivity.class));
+                finish();
+            }
+        });
+        signInViewModel.getErrorMutableLiveData().observe(mContext, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                try {
+                    JSONObject object = new JSONObject(s);
+                    Toast.makeText(SignInActivity.this, object.getString("detail"), Toast.LENGTH_SHORT).show();
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
                 }
                 progressDialog.dismiss();
             }
         });
     }
 
-    private BasicInformation setBasicInformation(String actualUserName, String demo, String password) {
-        BasicInformation basicInformation = new BasicInformation();
-        basicInformation.setUsername(actualUserName);
-        basicInformation.setPassword(password);
-        basicInformation.setTenantName(demo);
-        return basicInformation;
+    private void OnInit(String actualUserName, String demo, String password) {
+        progressDialog.show();
+        signInViewModel.getAccessToken(mContext, setBasicInformation(actualUserName, demo, password));
     }
 }

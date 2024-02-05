@@ -20,9 +20,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_toStartOf="@+id/exit_btn"
+        app:itemBackground="@drawable/bottom_navigation_background"
         app:itemIconTint="@color/white"
         app:itemTextColor="@color/white"
-        app:itemBackground="@drawable/bottom_navigation_background"
         app:menu="@menu/bottom_nav_items" />
 
     <RelativeLayout
@@ -46,8 +46,8 @@
             android:layout_below="@+id/exit_icon"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="5dp"
-            android:textColor="@color/white"
-            android:text="@string/exit" />
+            android:text="@string/exit"
+            android:textColor="@color/white" />
 
     </RelativeLayout>
 

@@ -10,9 +10,7 @@ public class StaticData {
     public static String accessTokenUrl = StaticData.baseUrl + StaticData.user + StaticData.token;
     public static String configUrl = StaticData.baseUrl + "/service/" + StaticData.tunnel + StaticData.user + "/get_token";
 
-    public static String getTunnelUrl(String tunnel,String username,) {
-        return StaticData.baseUrl + "service/" + tunnel + "/" + StaticData.tunnel + StaticData.config + username+"/"
+    public static String getTunnelUrl(String tunnel,String username) {
+        return StaticData.baseUrl + "service/" + tunnel + "/" + StaticData.tunnel + StaticData.config + username+"/";
     }
-
-    ;
 }

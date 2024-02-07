@@ -1,7 +1,6 @@
 package com.wireguard.insidepacker_android.essentials;
 
 import com.wireguard.android.backend.GoBackend;
-
 public class PersistentConnectionProperties {
     private static PersistentConnectionProperties mInstance = null;
 

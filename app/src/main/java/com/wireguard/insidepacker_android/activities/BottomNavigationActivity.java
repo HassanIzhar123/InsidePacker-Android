@@ -15,10 +15,12 @@ import com.wireguard.insidepacker_android.R;
 import java.util.ArrayList;
 
 import com.wireguard.insidepacker_android.adapters.ViewPagerAdapter;
+import com.wireguard.insidepacker_android.essentials.SettingsSingleton;
 import com.wireguard.insidepacker_android.fragments.HomeFragment;
 import com.wireguard.insidepacker_android.fragments.SettingsFragment;
 import com.wireguard.insidepacker_android.fragments.SupportFragment;
 import com.wireguard.insidepacker_android.models.FragmentModel.FragmentModel;
+import com.wireguard.insidepacker_android.utils.Utils;
 
 public class BottomNavigationActivity extends AppCompatActivity {
     RelativeLayout exitBtn;

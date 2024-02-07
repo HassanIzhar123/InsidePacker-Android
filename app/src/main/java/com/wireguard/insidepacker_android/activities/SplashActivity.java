@@ -20,9 +20,11 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.gson.Gson;
 import com.wireguard.insidepacker_android.R;
 import com.wireguard.insidepacker_android.ViewModels.SignInViewModel.SignInViewModel;
+import com.wireguard.insidepacker_android.essentials.SettingsSingleton;
 import com.wireguard.insidepacker_android.models.AccessToken.AccessToken;
 import com.wireguard.insidepacker_android.models.BasicInformation.BasicInformation;
 import com.wireguard.insidepacker_android.utils.PreferenceManager;
+import com.wireguard.insidepacker_android.utils.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,6 +42,7 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         mContext = this;
+        SettingsSingleton.getInstance().setSettings(new Utils().getSettings(mContext));
         signInViewModel = new ViewModelProvider(mContext).get(SignInViewModel.class);
         initializeViewModels();
         callAccessTokenApi();
@@ -49,7 +52,7 @@ public class SplashActivity extends AppCompatActivity {
         signInViewModel.getAccessTokenMutableLiveData().observe(mContext, new Observer<AccessToken>() {
             @Override
             public void onChanged(AccessToken accessToken) {
-                PreferenceManager<String> stringPreferenceManager = new PreferenceManager<>(getApplicationContext(), _PREFS_NAME);
+                PreferenceManager stringPreferenceManager = new PreferenceManager(getApplicationContext(), _PREFS_NAME);
                 stringPreferenceManager.saveValue(_USER_INFORMATION, basicInformation.toJson());
                 stringPreferenceManager.saveValue(_ACCESS_TOKEN, accessToken.getAccess_token());
                 Handler handler = new Handler();
@@ -79,7 +82,7 @@ public class SplashActivity extends AppCompatActivity {
     private void callAccessTokenApi() {
         final boolean result = checkIfInternetIsAvailable();
         if (result) {
-            PreferenceManager<String> stringPreferenceManager = new PreferenceManager<>(getApplicationContext(), _PREFS_NAME);
+            PreferenceManager stringPreferenceManager = new PreferenceManager(getApplicationContext(), _PREFS_NAME);
             String json = stringPreferenceManager.getValue(_USER_INFORMATION, "");
             if (!json.isEmpty()) {
                 Gson gson = new Gson();

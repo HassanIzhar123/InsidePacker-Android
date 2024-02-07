@@ -53,6 +53,7 @@
     <string name="menu_settings">Settings</string>
     <string name="menu_exit">Exit</string>
     <string name="exit">Exit</string>
-    <string name="update">Update</string>
+    <string name="set_as_trusted">set as trusted</string>
     <string name="no_tunnels_available">No Tunnels Available</string>
+    <string name="no_wifi_available">No Wifi Available</string>
 </resources>

@@ -43,8 +43,8 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.3")
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
-//    implementation("com.wireguard.android:tunnel:1.0.20211029")
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation("com.wireguard.android:tunnel:1.0.20230706")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+//    implementation("com.wireguard.android:tunnel:1.0.20230706")
     implementation("com.zsoltsafrany:needle:1.0.0")
 }

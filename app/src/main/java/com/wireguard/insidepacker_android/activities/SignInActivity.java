@@ -110,9 +110,9 @@ public class SignInActivity extends AppCompatActivity {
         signInViewModel.getAccessTokenMutableLiveData().observe(mContext, new Observer<AccessToken>() {
             @Override
             public void onChanged(AccessToken accessToken) {
-                PreferenceManager<String> stringPreferenceManager = new PreferenceManager<>(getApplicationContext(), _PREFS_NAME);
-                stringPreferenceManager.saveValue(_USER_INFORMATION, basicInformation.toJson());
-                stringPreferenceManager.saveValue(_ACCESS_TOKEN, accessToken.getAccess_token());
+                PreferenceManager preferenceManager = new PreferenceManager(getApplicationContext(), _PREFS_NAME);
+                preferenceManager.saveValue(_USER_INFORMATION, basicInformation.toJson());
+                preferenceManager.saveValue(_ACCESS_TOKEN, accessToken.getAccess_token());
                 progressDialog.dismiss();
                 Toast.makeText(SignInActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(SignInActivity.this, BottomNavigationActivity.class));

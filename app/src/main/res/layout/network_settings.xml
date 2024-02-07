@@ -35,7 +35,7 @@
                         android:id="@+id/always_on_vpn_inner_switch_layout"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_toStartOf="@+id/automatic_updates_switch">
+                        android:layout_toStartOf="@+id/always_on_vpn_switch">
 
                         <TextView
                             android:id="@+id/always_on_vpn_text"
@@ -60,13 +60,16 @@
                     </RelativeLayout>
 
                     <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/automatic_updates_switch"
+                        android:id="@+id/always_on_vpn_switch"
                         android:layout_width="wrap_content"
-                        android:layout_height="30dp"
-                        android:layout_below="@+id/always_on_vpn_inner_switch_layout"
-                        android:layout_alignParentTop="true"
+                        android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
-                        android:layout_marginEnd="20dp" />
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="20dp"
+                        android:checked="true"
+                        android:theme="@style/SCBSwitch"
+                        android:thumb="@drawable/thumb_selector"
+                        app:track="@drawable/track_selector" />
 
                 </RelativeLayout>
 
@@ -193,12 +196,25 @@
                         android:layout_below="@+id/tunnel_recyclerview"
                         android:layout_alignParentEnd="true"
                         android:layout_marginTop="10dp"
-                        android:text="@string/update" />
+                        android:text="@string/set_as_trusted" />
+
+                    <TextView
+                        android:id="@+id/empty_wifi_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginStart="20dp"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginEnd="10dp"
+                        android:fontFamily="@font/montserrat_semi_bold"
+                        android:text="@string/no_wifi_available"
+                        android:textColor="#0E0139"
+                        android:textSize="18sp"
+                        android:visibility="gone" />
 
                 </RelativeLayout>
 
                 <RelativeLayout
-
                     android:layout_width="match_parent"
                     android:layout_height="1.5dp"
                     android:layout_below="@+id/wifi_list"

@@ -3,7 +3,6 @@ package com.wireguard.insidepacker_android.fragments;
 import static com.wireguard.android.backend.Tunnel.State.DOWN;
 import static com.wireguard.android.backend.Tunnel.State.UP;
 import static com.wireguard.insidepacker_android.utils.SharedPrefsName._ACCESS_TOKEN;
-import static com.wireguard.insidepacker_android.utils.SharedPrefsName._IS_TRUSTED_WIFI;
 import static com.wireguard.insidepacker_android.utils.SharedPrefsName._PREFS_NAME;
 import static com.wireguard.insidepacker_android.utils.SharedPrefsName._SELECTED_WIFI;
 import static com.wireguard.insidepacker_android.utils.SharedPrefsName._USER_INFORMATION;
@@ -39,15 +38,14 @@ import com.wireguard.insidepacker_android.models.ConfigModel.ConfigModel;
 import com.wireguard.insidepacker_android.models.UserTenants.Item;
 import com.wireguard.insidepacker_android.utils.PreferenceManager;
 
-import needle.Needle;
+import java.util.List;
 
 public class HomeFragment extends Fragment {
     View view;
     AppCompatActivity mContext;
     HomeViewModel homeViewModel;
     BasicInformation basicInformation;
-    PreferenceManager<String> stringPreferenceManager;
-    PreferenceManager<Boolean> booleanPreferenceManager;
+    PreferenceManager preferenceManager;
     Backend backend = PersistentConnectionProperties.getInstance().getBackend();
     boolean isTrustedWifi = false;
 
@@ -72,18 +70,24 @@ public class HomeFragment extends Fragment {
     }
 
     private void initializeSharedPreference() {
-        stringPreferenceManager = new PreferenceManager<>(mContext, _PREFS_NAME);
-        booleanPreferenceManager = new PreferenceManager<>(mContext, _PREFS_NAME);
-        isTrustedWifi = !(String.join(",", stringPreferenceManager.getValue(_SELECTED_WIFI, "")).isEmpty());
+        preferenceManager = new PreferenceManager(mContext, _PREFS_NAME);
+        isTrustedWifi = !(String.join(",", preferenceManager.getValue(_SELECTED_WIFI, "")).isEmpty());
     }
 
     private void initViewModel() {
         getUserData();
-//        homeViewModel.getUserList(mContext, stringPreferenceManager.getValue(_ACCESS_TOKEN, ""), basicInformation.getTenantName(), basicInformation.getUsername());
+        homeViewModel.getUserList(mContext, preferenceManager.getValue(_ACCESS_TOKEN, ""), basicInformation.getTenantName(), basicInformation.getUsername());
         homeViewModel.getConnectionMutableLiveData().observe(mContext, connectionModel -> {
             if (connectionModel != null) {
                 if (!connectionModel.getUserTenants().getItems().isEmpty()) {
+                    List<Item> items=connectionModel.getUserTenants().getItems();
                     Item item = connectionModel.getUserTenants().getItems().get(0);
+                    for(int i =0;i<items.length;i++){
+                        if(items.get(i).getTunnelIp().equals(preferenceManager.getValue(_SELECTED_WIFI, ""))){
+                            item = items.get(i);
+                            break;
+                        }
+                    }
                     Log.e("CurrentItem", "" + new Gson().toJson(connectionModel.getUserTenants()));
                     initConnection(item, connectionModel.getConfigModel());
                 }
@@ -95,7 +99,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void getUserData() {
-        String json = stringPreferenceManager.getValue(_USER_INFORMATION, "");
+        String json = preferenceManager.getValue(_USER_INFORMATION, "");
         if (!json.isEmpty()) {
             Gson gson = new Gson();
             basicInformation = gson.fromJson(json, BasicInformation.class);

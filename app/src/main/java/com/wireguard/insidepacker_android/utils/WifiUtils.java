@@ -20,6 +20,7 @@ public class WifiUtils {
         List<String> connectedWifiNames = new ArrayList<>();
         WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.e("permissions","Permission not granted");
             return null;
         }
         List<WifiConfiguration> configuredNetworks = wifiManager.getConfiguredNetworks();

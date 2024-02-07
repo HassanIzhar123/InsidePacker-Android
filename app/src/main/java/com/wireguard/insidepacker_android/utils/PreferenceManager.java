@@ -3,15 +3,24 @@ package com.wireguard.insidepacker_android.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-public class PreferenceManager<T> {
-
+public class PreferenceManager {
+    private static PreferenceManager instance;
     private final SharedPreferences sharedPreferences;
+    private static String prefName;
 
     public PreferenceManager(Context context, String prefName) {
+        PreferenceManager.prefName = prefName;
         sharedPreferences = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
     }
 
-    public void saveValue(String key, T value) {
+    public static synchronized PreferenceManager getInstance(Context context) {
+        if (instance == null) {
+            instance = new PreferenceManager(context.getApplicationContext(), prefName);
+        }
+        return instance;
+    }
+
+    public void saveValue(String key, Object value) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         if (value instanceof String) {
             editor.putString(key, (String) value);
@@ -27,9 +36,8 @@ public class PreferenceManager<T> {
         editor.apply();
     }
 
-    // Method to retrieve a value from shared preferences
     @SuppressWarnings("unchecked")
-    public T getValue(String key, T defaultValue) {
+    public <T> T getValue(String key, T defaultValue) {
         if (defaultValue instanceof String) {
             return (T) sharedPreferences.getString(key, (String) defaultValue);
         } else if (defaultValue instanceof Integer) {
@@ -44,7 +52,6 @@ public class PreferenceManager<T> {
         return null;
     }
 
-    // Method to clear all saved values in shared preferences
     public void clear() {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();

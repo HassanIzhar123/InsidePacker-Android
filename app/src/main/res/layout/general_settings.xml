@@ -34,7 +34,7 @@
                         android:layout_marginStart="20dp"
                         android:layout_marginTop="20dp"
                         android:layout_marginBottom="20dp"
-                        android:layout_toStartOf="@+id/guidelines_switch">
+                        android:layout_toStartOf="@+id/enable_on_launch_switch">
 
                         <TextView
                             android:id="@+id/user_guidelines_text"
@@ -58,13 +58,25 @@
 
                     </RelativeLayout>
 
+                    <!--                    <androidx.appcompat.widget.SwitchCompat-->
+                    <!--                        android:id="@+id/guidelines_switch"-->
+                    <!--                        android:layout_width="wrap_content"-->
+                    <!--                        android:layout_height="wrap_content"-->
+                    <!--                        android:layout_alignParentEnd="true"-->
+                    <!--                        android:layout_centerVertical="true"-->
+                    <!--                        android:layout_marginEnd="20dp" />-->
+
                     <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/guidelines_switch"
+                        android:id="@+id/enable_on_launch_switch"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        android:layout_marginEnd="20dp" />
+                        android:layout_marginEnd="20dp"
+                        android:checked="true"
+                        android:theme="@style/SCBSwitch"
+                        android:thumb="@drawable/thumb_selector"
+                        app:track="@drawable/track_selector" />
 
                 </RelativeLayout>
 
@@ -119,13 +131,24 @@
 
                     </RelativeLayout>
 
+                    <!--                    <androidx.appcompat.widget.SwitchCompat-->
+                    <!--                        android:id="@+id/automatic_updates_switch"-->
+                    <!--                        android:layout_width="wrap_content"-->
+                    <!--                        android:layout_height="wrap_content"-->
+                    <!--                        android:layout_alignParentEnd="true"-->
+                    <!--                        android:layout_centerVertical="true"-->
+                    <!--                        android:layout_marginEnd="20dp" />-->
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/automatic_updates_switch"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        android:layout_marginEnd="20dp" />
+                        android:layout_marginEnd="20dp"
+                        android:checked="true"
+                        android:theme="@style/SCBSwitch"
+                        android:thumb="@drawable/thumb_selector"
+                        app:track="@drawable/track_selector" />
 
                 </RelativeLayout>
 
@@ -191,19 +214,19 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/tunnel_selection_to_support_layout"
                 android:layout_marginStart="20dp"
-                android:visibility="gone"
                 android:layout_marginTop="20dp"
-                android:layout_marginEnd="10dp" />
+                android:layout_marginEnd="10dp"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/empty_tunnels_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/tunnel_selection_to_support_layout"
+                android:layout_centerHorizontal="true"
                 android:layout_marginStart="20dp"
                 android:layout_marginTop="20dp"
                 android:layout_marginEnd="10dp"
-                android:layout_centerHorizontal="true"
                 android:fontFamily="@font/montserrat_semi_bold"
                 android:text="@string/no_tunnels_available"
                 android:textColor="#0E0139"

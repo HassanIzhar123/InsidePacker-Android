@@ -1,4 +1,4 @@
-package adapters;
+package com.wireguard.insidepacker_android.adapters;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;

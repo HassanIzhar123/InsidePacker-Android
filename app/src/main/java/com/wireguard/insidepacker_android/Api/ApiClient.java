@@ -2,6 +2,7 @@ package com.wireguard.insidepacker_android.Api;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -12,6 +13,7 @@ import com.android.volley.toolbox.Volley;
 import com.wireguard.insidepacker_android.DataStructure.StaticData;
 import com.wireguard.insidepacker_android.Interfaces.VolleyCallback;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
@@ -19,6 +21,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -91,7 +94,7 @@ public class ApiClient {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     String body;
-                    if (error != null) {
+                    if (error != null && error.networkResponse != null) {
                         if (error.networkResponse.data != null) {
                             body = new String(error.networkResponse.data, StandardCharsets.UTF_8);
                             callback.onError(body);
@@ -116,12 +119,50 @@ public class ApiClient {
     }
 
 
-    public void getRequest(String url, VolleyCallback callback) {
+    public void getRequest(String url, String tunnel, String username, String accessToken, VolleyCallback callback) {
         try {
             JsonObjectRequest request = new JsonObjectRequest(url, new Response.Listener<JSONObject>() {
                 @Override
-                public void onResponse(JSONObject response) {
-                    callback.onSuccess(response);
+                public void onResponse(JSONObject tenantListResult) {
+                    try {
+                        JSONArray items = tenantListResult.getJSONArray("items");
+                        if (items.length() > 0) {
+                            JSONObject item = new JSONObject(items.get(0).toString());
+                            Log.e("tenantListResult", "" + item);
+                            String tunnelUrl = StaticData.getTunnelUrl(tunnel, username, item.optString("tunnel_id"));
+                            JsonObjectRequest request = new JsonObjectRequest(tunnelUrl, new Response.Listener<JSONObject>() {
+                                @Override
+                                public void onResponse(JSONObject tunnelJson) {
+                                    callback.onSuccess(tenantListResult, tunnelJson);
+                                }
+                            }, new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    String body;
+                                    if (error != null) {
+                                        if (error.networkResponse.data != null) {
+                                            body = new String(error.networkResponse.data, StandardCharsets.UTF_8);
+                                            callback.onError(body);
+                                        }
+                                    } else {
+                                        callback.onError("Error");
+                                    }
+                                }
+                            }) {
+                                @Override
+                                public Map<String, String> getHeaders() {
+                                    Map<String, String> headers = new HashMap<>();
+                                    headers.put("Content-Type", "application/json");
+                                    headers.put("Cookie", "Authorization=" + accessToken.trim());
+                                    return headers;
+                                }
+                            };
+                            addToRequestQueue(request);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        callback.onError(e.getMessage());
+                    }
                 }
             }, new Response.ErrorListener() {
                 @Override
@@ -141,6 +182,7 @@ public class ApiClient {
                 public Map<String, String> getHeaders() {
                     Map<String, String> headers = new HashMap<>();
                     headers.put("Content-Type", "application/json");
+                    headers.put("Cookie", "Authorization=" + accessToken.trim());
                     return headers;
                 }
             };

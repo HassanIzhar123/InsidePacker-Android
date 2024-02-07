@@ -8,18 +8,28 @@ import com.wireguard.insidepacker_android.Api.ApiClient;
 import com.wireguard.insidepacker_android.DataStructure.StaticData;
 import com.wireguard.insidepacker_android.Interfaces.ViewModelCallBacks;
 import com.wireguard.insidepacker_android.Interfaces.VolleyCallback;
+
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import needle.Needle;
 
 public class HomeRepo {
     ApiClient apiClient;
 
-    public void getConfiguration(Context context, ViewModelCallBacks callBacks) {
+    public void getUserList(Context context, String accessToken, String tunnel, String username, ViewModelCallBacks callBacks) {
         apiClient = ApiClient.getInstance(context);
-        Log.e("configUrl", StaticData.configUrl);
-        apiClient.getRequest(StaticData.configUrl, new VolleyCallback() {
+        String userListUrl = StaticData.getUserListUrl(tunnel, username);
+        Log.e("userListUrl", userListUrl + " " + accessToken);
+        apiClient.getRequest(userListUrl, tunnel,username,accessToken, new VolleyCallback() {
             @Override
-            public void onSuccess(JSONObject result) {
-                callBacks.onSuccess(result);
+            public void onSuccess(JSONObject tenantListResult) {
+
+            }
+
+            @Override
+            public void onSuccess(JSONObject tenantListResult, JSONObject tunnelJson) {
+                callBacks.onSuccess(tenantListResult, tunnelJson);
             }
 
             @Override
@@ -28,7 +38,6 @@ public class HomeRepo {
             }
         });
     }
-
 }
 
 

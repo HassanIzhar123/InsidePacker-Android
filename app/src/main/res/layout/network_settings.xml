@@ -4,41 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#5BEBE7F9"
-    tools:context=".activities.SupportActivity">
-
-    <RelativeLayout
-        android:id="@+id/upper_layout"
-        android:layout_width="match_parent"
-        android:layout_height="130dp"
-        android:background="@drawable/support_upper_layer_background">
-
-        <TextView
-            android:id="@+id/support_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="30dp"
-            android:fontFamily="@font/montserrat_medium"
-            android:text="@string/settings"
-            android:textAlignment="center"
-            android:textColor="@color/white"
-            android:textSize="20sp" />
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:contentDescription="@string/settings"
-            android:src="@drawable/map" />
-
-    </RelativeLayout>
+    android:background="#FFFFFF"
+    tools:context=".fragments.NetworkSettingsFragment">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/upper_layout"
         android:fillViewport="true">
 
         <RelativeLayout
@@ -56,8 +27,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20dp"
-                    android:layout_marginEnd="20dp"
                     android:layout_marginTop="20dp"
+                    android:layout_marginEnd="20dp"
                     android:layout_marginBottom="20dp">
 
                     <RelativeLayout
@@ -72,6 +43,7 @@
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/montserrat_semi_bold"
                             android:text="@string/always_on_vpn"
+                            android:textColor="#0E0139"
                             android:textSize="16sp" />
 
                         <TextView
@@ -82,6 +54,7 @@
                             android:layout_marginTop="10dp"
                             android:fontFamily="@font/montserrat_medium"
                             android:text="@string/always_on_vpn_detail_text"
+                            android:textColor="#0E0139"
                             android:textSize="14sp" />
 
                     </RelativeLayout>
@@ -113,8 +86,8 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/always_on_vpn_switch_layout"
                 android:layout_marginStart="20dp"
-                android:layout_marginEnd="20dp"
                 android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
                 android:layout_marginBottom="20dp">
 
                 <RelativeLayout
@@ -128,6 +101,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/montserrat_semi_bold"
                         android:text="@string/automatic_wi_fi_security"
+                        android:textColor="#0E0139"
                         android:textSize="16sp" />
 
                     <TextView
@@ -138,6 +112,7 @@
                         android:layout_marginTop="10dp"
                         android:fontFamily="@font/montserrat_medium"
                         android:text="@string/automatically_wifi_security_steps_detail_text"
+                        android:textColor="#0E0139"
                         android:textSize="14sp" />
 
                 </RelativeLayout>
@@ -171,6 +146,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/montserrat_semi_bold"
                         android:text="@string/trusted_wifi_networks"
+                        android:textColor="#0E0139"
                         android:textSize="16sp" />
 
                     <TextView
@@ -181,14 +157,15 @@
                         android:layout_marginTop="10dp"
                         android:fontFamily="@font/montserrat_medium"
                         android:text="@string/trusted_wifi_network_detail_text"
+                        android:textColor="#0E0139"
                         android:textSize="14sp" />
 
                     <TextView
                         android:id="@+id/auto_wifi_security_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
                         android:layout_below="@+id/trusted_wifi_networks_steps_text"
+                        android:layout_marginTop="10dp"
                         android:fontFamily="@font/montserrat_semi_bold"
                         android:text="@string/auto_wi_fi_security"
                         android:textColor="#6B55F0"
@@ -197,9 +174,34 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/wifi_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/trusted_wifi_networks_inner_switch_layout"
+                    android:layout_marginTop="20dp">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/tunnel_recyclerview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp" />
+
+                    <Button
+                        android:id="@+id/submitButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/tunnel_recyclerview"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/update" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+
                     android:layout_width="match_parent"
                     android:layout_height="1.5dp"
-                    android:layout_below="@+id/trusted_wifi_networks_inner_switch_layout"
+                    android:layout_below="@+id/wifi_list"
                     android:layout_marginTop="20dp"
                     android:background="#CCC4E8" />
 

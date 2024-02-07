@@ -1,47 +1,120 @@
-
 package com.wireguard.insidepacker_android.models.ConfigModel;
+
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 
 public class ConfigModel implements Serializable {
-    private String publicKey;
-    private String tunnelid;
+
+    @SerializedName("tunnel_id")
+    @Expose
+    private String tunnelId;
+    @SerializedName("tunnel_ip")
+    @Expose
+    private String tunnelIp;
+    @SerializedName("tunnel_private_key")
+    @Expose
     private String tunnelPrivateKey;
-    private String remoteip;
-    private String allowedips;
+    @SerializedName("tunnel_DNS")
+    @Expose
     private String tunnelDNS;
-    private String remotePort;
+    @SerializedName("public_key")
+    @Expose
+    private String publicKey;
+    @SerializedName("psk")
+    @Expose
     private String psk;
-    private String untrustedAllowedips;
-    private String tunnelip;
+    @SerializedName("allowed_ips")
+    @Expose
+    private String allowedIps;
+    @SerializedName("untrusted_allowed_ips")
+    @Expose
+    private String untrustedAllowedIps;
+    @SerializedName("remote_ip")
+    @Expose
+    private String remoteIp;
+    @SerializedName("remote_port")
+    @Expose
+    private String remotePort;
 
-    public String getPublicKey() { return publicKey; }
-    public void setPublicKey(String value) { this.publicKey = value; }
+    public String getTunnelId() {
+        return tunnelId;
+    }
 
-    public String getTunnelid() { return tunnelid; }
-    public void setTunnelid(String value) { this.tunnelid = value; }
+    public void setTunnelId(String tunnelId) {
+        this.tunnelId = tunnelId;
+    }
 
-    public String getTunnelPrivateKey() { return tunnelPrivateKey; }
-    public void setTunnelPrivateKey(String value) { this.tunnelPrivateKey = value; }
+    public String getTunnelIp() {
+        return tunnelIp;
+    }
 
-    public String getRemoteip() { return remoteip; }
-    public void setRemoteip(String value) { this.remoteip = value; }
+    public void setTunnelIp(String tunnelIp) {
+        this.tunnelIp = tunnelIp;
+    }
 
-    public String getAllowedips() { return allowedips; }
-    public void setAllowedips(String value) { this.allowedips = value; }
+    public String getTunnelPrivateKey() {
+        return tunnelPrivateKey;
+    }
 
-    public String getTunnelDNS() { return tunnelDNS; }
-    public void setTunnelDNS(String value) { this.tunnelDNS = value; }
+    public void setTunnelPrivateKey(String tunnelPrivateKey) {
+        this.tunnelPrivateKey = tunnelPrivateKey;
+    }
 
-    public String getRemotePort() { return remotePort; }
-    public void setRemotePort(String value) { this.remotePort = value; }
+    public String getTunnelDNS() {
+        return tunnelDNS;
+    }
 
-    public String getPsk() { return psk; }
-    public void setPsk(String value) { this.psk = value; }
+    public void setTunnelDNS(String tunnelDNS) {
+        this.tunnelDNS = tunnelDNS;
+    }
 
-    public String getUntrustedAllowedips() { return untrustedAllowedips; }
-    public void setUntrustedAllowedips(String value) { this.untrustedAllowedips = value; }
+    public String getPublicKey() {
+        return publicKey;
+    }
 
-    public String getTunnelip() { return tunnelip; }
-    public void setTunnelip(String value) { this.tunnelip = value; }
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public String getPsk() {
+        return psk;
+    }
+
+    public void setPsk(String psk) {
+        this.psk = psk;
+    }
+
+    public String getAllowedIps() {
+        return allowedIps;
+    }
+
+    public void setAllowedIps(String allowedIps) {
+        this.allowedIps = allowedIps;
+    }
+
+    public String getUntrustedAllowedIps() {
+        return untrustedAllowedIps;
+    }
+
+    public void setUntrustedAllowedIps(String untrustedAllowedIps) {
+        this.untrustedAllowedIps = untrustedAllowedIps;
+    }
+
+    public String getRemoteIp() {
+        return remoteIp;
+    }
+
+    public void setRemoteIp(String remoteIp) {
+        this.remoteIp = remoteIp;
+    }
+
+    public String getRemotePort() {
+        return remotePort;
+    }
+
+    public void setRemotePort(String remotePort) {
+        this.remotePort = remotePort;
+    }
 }

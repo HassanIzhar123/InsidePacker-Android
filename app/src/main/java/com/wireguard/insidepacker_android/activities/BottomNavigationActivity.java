@@ -14,11 +14,10 @@ import com.wireguard.insidepacker_android.R;
 
 import java.util.ArrayList;
 
-import adapters.ViewPagerAdapter;
-import fragments.SettingsFragment;
-import fragments.SupportFragment;
-
+import com.wireguard.insidepacker_android.adapters.ViewPagerAdapter;
 import com.wireguard.insidepacker_android.fragments.HomeFragment;
+import com.wireguard.insidepacker_android.fragments.SettingsFragment;
+import com.wireguard.insidepacker_android.fragments.SupportFragment;
 import com.wireguard.insidepacker_android.models.FragmentModel.FragmentModel;
 
 public class BottomNavigationActivity extends AppCompatActivity {
@@ -87,5 +86,6 @@ public class BottomNavigationActivity extends AppCompatActivity {
     private void initViewPager() {
         ArrayList<FragmentModel> fragments = getAllFragments();
         viewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager(), fragments));
+        viewPager.setOffscreenPageLimit(3);
     }
 }

@@ -4,41 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#5BEBE7F9"
-    tools:context=".activities.SupportActivity">
-
-    <RelativeLayout
-        android:id="@+id/upper_layout"
-        android:layout_width="match_parent"
-        android:layout_height="130dp"
-        android:background="@drawable/support_upper_layer_background">
-
-        <TextView
-            android:id="@+id/support_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="30dp"
-            android:fontFamily="@font/montserrat_medium"
-            android:text="@string/settings"
-            android:textAlignment="center"
-            android:textColor="@color/white"
-            android:textSize="20sp" />
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:contentDescription="@string/settings"
-            android:src="@drawable/map" />
-
-    </RelativeLayout>
+    android:background="#FFFFFF"
+    tools:context=".fragments.GeneralSettingsFragment">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/upper_layout"
         android:fillViewport="true">
 
         <RelativeLayout
@@ -72,6 +43,7 @@
                             android:layout_marginEnd="10dp"
                             android:fontFamily="@font/montserrat_semi_bold"
                             android:text="@string/enable_on_launch"
+                            android:textColor="#0E0139"
                             android:textSize="16sp" />
 
                         <ImageButton
@@ -81,7 +53,8 @@
                             android:layout_toEndOf="@+id/user_guidelines_text"
                             android:background="?selectableItemBackgroundBorderless"
                             android:contentDescription="@string/info_icon"
-                            android:src="@drawable/info_icon" />
+                            android:src="@drawable/info_icon"
+                            android:textColor="#0E0139" />
 
                     </RelativeLayout>
 
@@ -132,6 +105,7 @@
                             android:layout_marginEnd="10dp"
                             android:fontFamily="@font/montserrat_semi_bold"
                             android:text="@string/automatic_updates"
+                            android:textColor="#0E0139"
                             android:textSize="16sp" />
 
                         <ImageButton
@@ -185,6 +159,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/montserrat_semi_bold"
                         android:text="@string/tunnel_selection"
+                        android:textColor="#0E0139"
                         android:textSize="16sp" />
 
                     <TextView
@@ -195,6 +170,7 @@
                         android:layout_marginTop="10dp"
                         android:fontFamily="@font/montserrat_medium"
                         android:text="@string/tunnel_selection_details"
+                        android:textColor="#0E0139"
                         android:textSize="14sp" />
 
                 </RelativeLayout>
@@ -209,159 +185,30 @@
 
             </RelativeLayout>
 
-            <RelativeLayout
-                android:id="@+id/macos_layout"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/tunnel_recyclerview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/tunnel_selection_to_support_layout"
-                android:background="?selectableItemBackgroundBorderless">
+                android:layout_marginStart="20dp"
+                android:visibility="gone"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="10dp" />
 
-                <RelativeLayout
-                    android:id="@+id/macos_inner_layout"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:id="@+id/macos_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="20dp"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginEnd="10dp"
-                        android:layout_marginBottom="20dp"
-                        android:layout_toStartOf="@+id/macos_switch"
-                        android:fontFamily="@font/montserrat_semi_bold"
-                        android:text="@string/macos"
-                        android:textSize="16sp" />
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/macos_switch"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="20dp" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="1.5dp"
-                    android:layout_below="@+id/macos_inner_layout"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginEnd="20dp"
-                    android:background="#CCC4E8" />
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/iphone_layout"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/empty_tunnels_text"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/macos_layout"
-                android:background="?selectableItemBackgroundBorderless">
-
-                <RelativeLayout
-                    android:id="@+id/iphone_inner_layout"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:id="@+id/iphone_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="20dp"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginEnd="10dp"
-                        android:layout_marginBottom="20dp"
-                        android:layout_toStartOf="@+id/iphone_switch"
-                        android:fontFamily="@font/montserrat_semi_bold"
-                        android:text="@string/iphone"
-                        android:textSize="16sp" />
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/iphone_switch"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="20dp" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="1.5dp"
-                    android:layout_below="@+id/iphone_inner_layout"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginEnd="20dp"
-                    android:background="#CCC4E8" />
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/windows_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/iphone_layout"
-                android:background="?selectableItemBackgroundBorderless">
-
-                <RelativeLayout
-                    android:id="@+id/windows_inner_layout"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:id="@+id/windows_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="20dp"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginEnd="10dp"
-                        android:layout_marginBottom="20dp"
-                        android:layout_toStartOf="@+id/windows_switch"
-                        android:fontFamily="@font/montserrat_semi_bold"
-                        android:text="@string/windows"
-                        android:textSize="16sp" />
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/windows_switch"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="20dp" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="1.5dp"
-                    android:layout_below="@+id/windows_inner_layout"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginEnd="20dp"
-                    android:background="#CCC4E8" />
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@+id/windows_layout">
-
-                <TextView
-                    android:id="@+id/version_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentBottom="true"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginBottom="30dp"
-                    android:fontFamily="@font/montserrat_semi_bold"
-                    android:text="@string/version"
-                    android:textColor="#6B55F0"
-                    android:textSize="16sp" />
-
-            </RelativeLayout>
+                android:layout_below="@+id/tunnel_selection_to_support_layout"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="10dp"
+                android:layout_centerHorizontal="true"
+                android:fontFamily="@font/montserrat_semi_bold"
+                android:text="@string/no_tunnels_available"
+                android:textColor="#0E0139"
+                android:textSize="18sp"
+                android:visibility="visible" />
 
         </RelativeLayout>
 

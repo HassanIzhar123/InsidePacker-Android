@@ -1,4 +1,4 @@
-package fragments;
+package com.wireguard.insidepacker_android.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

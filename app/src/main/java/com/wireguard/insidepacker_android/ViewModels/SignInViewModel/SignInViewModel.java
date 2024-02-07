@@ -43,6 +43,11 @@ public class SignInViewModel extends AndroidViewModel {
             }
 
             @Override
+            public void onSuccess(JSONObject tenantListResult, JSONObject configResult) {
+
+            }
+
+            @Override
             public void onError(String message) {
                 errorMutableLiveData.postValue(message);
             }

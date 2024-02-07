@@ -7,10 +7,15 @@ public class StaticData {
     public static String user = "users/";
     public static String token = "get_token";
     public static String config = "get_conf/";
+    public static String userList = "get_user_list/";
     public static String accessTokenUrl = StaticData.baseUrl + StaticData.user + StaticData.token;
     public static String configUrl = StaticData.baseUrl + "/service/" + StaticData.tunnel + StaticData.user + "/get_token";
 
-    public static String getTunnelUrl(String tunnel,String username) {
-        return StaticData.baseUrl + "service/" + tunnel + "/" + StaticData.tunnel + StaticData.config + username+"/";
+    public static String getTunnelUrl(String tunnel, String username, String tenantId) {
+        return StaticData.baseUrl + "service/" + tunnel + "/" + StaticData.tunnel + StaticData.config + username + "/" + tenantId;
+    }
+
+    public static String getUserListUrl(String tunnel, String username) {
+        return StaticData.baseUrl + "service/" + tunnel + "/" + StaticData.tunnel + userList + username;
     }
 }

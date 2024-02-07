@@ -21,6 +21,11 @@ public class SignInRepo {
                 }
 
                 @Override
+                public void onSuccess(JSONObject tenantListResult, JSONObject tunnelJson) {
+
+                }
+
+                @Override
                 public void onError(String message) {
                     callBacks.onError(message);
                 }

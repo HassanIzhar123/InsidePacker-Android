@@ -114,10 +114,6 @@ public class GeneralSettingsFragment extends Fragment {
                     emptyTextView.setVisibility(View.GONE);
                     recyclerView.setVisibility(View.VISIBLE);
                     List<Item> items = connectionModel.getUserTenants().getItems();
-                    Item item = new Item();
-                    item = items.get(0);
-                    items.add(item);
-                    items.add(item);
                     recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
                     TunnelSelectionRecyclerViewAdapter adapter = new TunnelSelectionRecyclerViewAdapter(connectionModel.getUserTenants().getItems()); // Provide your data list here
                     recyclerView.setAdapter(adapter);
@@ -131,6 +127,7 @@ public class GeneralSettingsFragment extends Fragment {
                                     tunnels.setSelectedTunnels(items.get(position).getTunnelIp());
                                     SettingsSingleton.getInstance().getSettings().setTunnels(tunnels);
                                     new Utils().saveSettings(getContext(), settingsSingleton.getSettings());
+
                                     adapter.notifyDataSetChanged();
                                 }
                             });

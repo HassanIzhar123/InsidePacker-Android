@@ -4,11 +4,13 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.wireguard.insidepacker_android.DataStructure.StaticData;
 import com.wireguard.insidepacker_android.Interfaces.VolleyCallback;
@@ -21,7 +23,6 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -118,7 +119,6 @@ public class ApiClient {
         }
     }
 
-
     public void getRequest(String url, String tunnel, String username, String accessToken, VolleyCallback callback) {
         try {
             JsonObjectRequest request = new JsonObjectRequest(url, new Response.Listener<JSONObject>() {
@@ -189,6 +189,44 @@ public class ApiClient {
             addToRequestQueue(request);
         } catch (Exception e) {
             e.printStackTrace();
+            callback.onError(e.getMessage());
+        }
+    }
+
+    public void getRequest(String url, String accessToken, VolleyCallback callback) {
+        try {
+            JsonObjectRequest request = new JsonObjectRequest (url, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject json) {
+                    callback.onSuccess(json);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e("volleyError", ""+error);
+                    String body;
+                    if (error != null && error.networkResponse != null) {
+                        if (error.networkResponse.data != null) {
+                            body = new String(error.networkResponse.data, StandardCharsets.UTF_8);
+                            callback.onError(body);
+                        }
+                    } else {
+                        callback.onError("Error");
+                    }
+                }
+            }) {
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Content-Type", "application/json");
+                    headers.put("Cookie", "Authorization=" + accessToken.trim());
+                    return headers;
+                }
+            };
+            addToRequestQueue(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("error", ""+e.getStackTrace().toString());
             callback.onError(e.getMessage());
         }
     }

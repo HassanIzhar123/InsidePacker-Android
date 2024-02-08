@@ -2,8 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:background="#F5F5F5"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
 
     <RelativeLayout
         android:id="@+id/upper_layout"
@@ -30,146 +30,244 @@
 
     </RelativeLayout>
 
-    <ImageView
-        android:id="@+id/security_icon"
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nested_scroll_view"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/wifi_status_layout"
         android:layout_below="@+id/upper_layout"
-        android:contentDescription="@string/security_icon"
-        android:src="@drawable/security_icon" />
-
-    <RelativeLayout
-        android:id="@+id/network_wifi_status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/security_icon">
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <RelativeLayout
-            android:id="@+id/connected_layout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone">
-
-            <ImageView
-                android:id="@+id/connected_icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:contentDescription="@string/settings"
-                android:src="@drawable/connected_icon" />
+            android:layout_height="match_parent">
 
             <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_toEndOf="@+id/connected_icon">
+                android:id="@+id/network_status_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-                <TextView
-                    android:id="@+id/trusted_network_text"
+                <RelativeLayout
+                    android:id="@+id/cloud_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/disconnected_cloud_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:contentDescription="@string/security_icon"
+                        android:paddingStart="40dp"
+                        android:paddingEnd="0dp"
+                        android:src="@drawable/disconnected_icon"
+                        android:visibility="gone" />
+
+                    <ImageView
+                        android:id="@+id/connected_cloud_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:contentDescription="@string/security_icon"
+                        android:paddingStart="40dp"
+                        android:paddingEnd="0dp"
+                        android:src="@drawable/security_icon"
+                        android:visibility="gone" />
+
+                    <RelativeLayout
+                        android:id="@+id/not_trusted_cloud_image"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:animateLayoutChanges="true">
+
+                        <ImageView
+                            android:id="@+id/img"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:background="@drawable/not_trusted_cloud_image"
+                            android:contentDescription="@string/not_trusted_cloud_image"
+                            android:paddingBottom="45dp" />
+
+                        <Button
+                            android:id="@+id/access_resources_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignBottom="@+id/img"
+                            android:layout_centerHorizontal="true"
+                            android:layout_marginBottom="35dp"
+                            android:backgroundTint="#12B204"
+                            android:fontFamily="@font/montserrat_semi_bold"
+                            android:text="@string/access_organization_resources"
+                            android:textColor="@color/white" />
+
+                    </RelativeLayout>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/network_wifi_status"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginEnd="10dp"
-                    android:fontFamily="@font/montserrat_bold"
-                    android:text="@string/trusted_network"
-                    android:textAlignment="center"
-                    android:textColor="#0D0038"
-                    android:textSize="12sp" />
+                    android:layout_below="@+id/cloud_layout">
+
+                    <TextView
+                        android:id="@+id/time_left_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="20dp"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="5dp"
+                        android:background="@drawable/time_left_background"
+                        android:fontFamily="@font/montserrat_bold"
+                        android:text="@string/time_left"
+                        android:textAlignment="center"
+                        android:textColor="@color/white"
+                        android:textSize="12sp" />
+
+                    <RelativeLayout
+                        android:id="@+id/trusted_layout"
+                       android:layout_below="@+id/time_left_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:layout_centerHorizontal="true"
+                        android:animateLayoutChanges="true">
+
+                        <ImageView
+                            android:id="@+id/connected_layout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerHorizontal="true"
+                            android:contentDescription="@string/settings"
+                            android:src="@drawable/connected_status_icon" />
+
+                        <ImageView
+                            android:id="@+id/disconnected_layout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerHorizontal="true"
+                            android:contentDescription="@string/settings"
+                            android:src="@drawable/disconnected_status_icon" />
+
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/trusted_text_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_toEndOf="@+id/trusted_layout"
+                        android:animateLayoutChanges="true">
+
+                        <TextView
+                            android:id="@+id/trusted_network_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="10dp"
+                            android:fontFamily="@font/montserrat_bold"
+                            android:text="@string/trusted_network"
+                            android:textAlignment="center"
+                            android:textColor="#0D0038"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/wifi_name_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/trusted_network_text"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginTop="15dp"
+                            android:layout_marginEnd="10dp"
+                            android:fontFamily="@font/montserrat_bold"
+                            android:text="@string/wifi_name"
+                            android:textAlignment="center"
+                            android:textColor="#12B204"
+                            android:textSize="12sp" />
+
+                    </RelativeLayout>
+
+                </RelativeLayout>
 
                 <TextView
-                    android:id="@+id/wifi_name_text"
+                    android:id="@+id/network_status"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@+id/trusted_network_text"
+                    android:layout_below="@+id/network_wifi_status"
                     android:layout_marginStart="10dp"
-                    android:layout_marginTop="15dp"
                     android:layout_marginEnd="10dp"
-                    android:fontFamily="@font/montserrat_bold"
-                    android:text="@string/wifi_name"
+                    android:fontFamily="@font/montserrat_semi_bold"
+                    android:text="@string/disconnected"
                     android:textAlignment="center"
-                    android:textColor="#12B204"
-                    android:textSize="12sp" />
+                    android:textColor="#E82424"
+                    android:textSize="35sp" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/network_button_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@+id/network_status_layout"
+                android:animateLayoutChanges="true">
+
+                <Button
+                    android:id="@+id/connected_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginStart="45dp"
+                    android:layout_marginTop="30dp"
+                    android:layout_marginEnd="45dp"
+                    android:animateLayoutChanges="true"
+                    android:fontFamily="@font/montserrat_medium"
+                    android:text="@string/connect"
+                    android:textAlignment="center"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:visibility="gone"
+                    app:backgroundTint="#12B204"
+                    app:cornerRadius="10dp" />
+
+                <Button
+                    android:id="@+id/disconnected_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:layout_marginStart="45dp"
+                    android:layout_marginTop="30dp"
+                    android:layout_marginEnd="45dp"
+                    android:animateLayoutChanges="true"
+                    android:fontFamily="@font/montserrat_medium"
+                    android:text="@string/disconnect"
+                    android:textAlignment="center"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    app:backgroundTint="#6B55F0"
+                    app:cornerRadius="10dp" />
 
             </RelativeLayout>
 
         </RelativeLayout>
 
-        <ImageView
-            android:id="@+id/disconnected_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:contentDescription="@string/settings"
-            android:src="@drawable/disconnected_icon" />
-
-    </RelativeLayout>
-
-    <TextView
-        android:id="@+id/network_status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/network_wifi_status"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:fontFamily="@font/montserrat_semi_bold"
-        android:text="@string/disconnected"
-        android:textAlignment="center"
-        android:textColor="#E82424"
-        android:textSize="35sp" />
-
-    <RelativeLayout
-        android:id="@+id/network_button_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/wifi_status_layout"
-        android:layout_below="@+id/network_status">
-
-        <Button
-            android:id="@+id/connected_button"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginStart="45dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginEnd="45dp"
-            android:fontFamily="@font/montserrat_medium"
-            android:text="@string/connect"
-            android:textAlignment="center"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:visibility="gone"
-            app:backgroundTint="#12B204"
-            app:cornerRadius="10dp" />
-
-        <Button
-            android:id="@+id/disconnected_button"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginStart="45dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginEnd="45dp"
-            android:fontFamily="@font/montserrat_medium"
-            android:text="@string/disconnect"
-            android:textAlignment="center"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            app:backgroundTint="#6B55F0"
-            app:cornerRadius="10dp" />
-
-    </RelativeLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <LinearLayout
         android:id="@+id/wifi_status_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:orientation="horizontal"
         android:layout_marginStart="15dp"
         android:layout_marginEnd="15dp"
         android:layout_marginBottom="15dp"
-        android:weightSum="4"
-        android:baselineAligned="false">
+        android:animateLayoutChanges="true"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        android:weightSum="4">
 
         <RelativeLayout
             android:id="@+id/traffic_in_out"
@@ -182,6 +280,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/montserrat_medium"
+                android:maxLines="1"
                 android:text="@string/traffic_in_out"
                 android:textAlignment="center"
                 android:textColor="#78A3D4"

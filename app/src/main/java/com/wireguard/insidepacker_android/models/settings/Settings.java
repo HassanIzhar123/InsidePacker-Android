@@ -3,6 +3,7 @@ package com.wireguard.insidepacker_android.models.settings;
 import androidx.annotation.NonNull;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.annotations.Expose;
@@ -75,6 +76,15 @@ public class Settings implements Serializable {
 
     public void setSelectedTrustedWifi(List<SelectedTrustedWifi> selectedTrustedWifi) {
         this.selectedTrustedWifi = selectedTrustedWifi;
+    }
+
+    public List<String> getSelectedTrustedWifiNamesInListString() {
+        List<SelectedTrustedWifi> selectedTrustedWifi = getSelectedTrustedWifi();
+        List<String> selectedTrustedWifiNames = new ArrayList<>();
+        for (SelectedTrustedWifi selectedTrustedWifiItem : selectedTrustedWifi) {
+            selectedTrustedWifiNames.add(selectedTrustedWifiItem.getName());
+        }
+        return selectedTrustedWifiNames;
     }
 
     @NonNull

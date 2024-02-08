@@ -17,11 +17,33 @@ import com.wireguard.insidepacker_android.repository.HomeRepo;
 
 import org.json.JSONObject;
 
+import needle.Needle;
+
 public class HomeViewModel extends AndroidViewModel {
     MutableLiveData<ConfigModel> configMutableLiveData;
     MutableLiveData<ConnectionModel> ConnectionMutableLiveData;
-    MutableLiveData<String> errorConfigMutableLiveData, errorUserListMutableList;
+    MutableLiveData<String> timeLeftMutableLiveData;
+    MutableLiveData<String> errorConfigMutableLiveData;
+    MutableLiveData<String> errorUserListMutableList;
+    MutableLiveData<String> errorTimeLeftMutableList;
     HomeRepo mainHomeRepo;
+
+    public MutableLiveData<String> getErrorTimeLeftMutableList() {
+        return errorTimeLeftMutableList;
+    }
+
+    public void setErrorTimeLeftMutableList(MutableLiveData<String> errorTimeLeftMutableList) {
+        this.errorTimeLeftMutableList = errorTimeLeftMutableList;
+    }
+
+
+    public MutableLiveData<String> getTimeLeftMutableLiveData() {
+        return timeLeftMutableLiveData;
+    }
+
+    public void setTimeLeftMutableLiveData(MutableLiveData<String> timeLeftMutableLiveData) {
+        this.timeLeftMutableLiveData = timeLeftMutableLiveData;
+    }
 
     public MutableLiveData<ConnectionModel> getConnectionMutableLiveData() {
         return ConnectionMutableLiveData;
@@ -54,28 +76,59 @@ public class HomeViewModel extends AndroidViewModel {
         errorUserListMutableList = new MutableLiveData<>();
         configMutableLiveData = new MutableLiveData<>();
         errorConfigMutableLiveData = new MutableLiveData<>();
+        timeLeftMutableLiveData = new MutableLiveData<>();
+        errorTimeLeftMutableList = new MutableLiveData<>();
     }
 
     public void getUserList(Context context, String accessToken, String tunnel, String username) {
-        mainHomeRepo.getUserList(context, accessToken, tunnel, username, new ViewModelCallBacks() {
+        Needle.onBackgroundThread().execute(new Runnable() {
             @Override
-            public void onSuccess(JSONObject result) {
+            public void run() {
+                mainHomeRepo.getUserList(context, accessToken, tunnel, username, new ViewModelCallBacks() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
 
+                    }
+
+                    @Override
+                    public void onSuccess(JSONObject tenantListResult, JSONObject configResult) {
+                        UserTenants userTenants = new Gson().fromJson(tenantListResult.toString(), UserTenants.class);
+                        ConfigModel configModel = new Gson().fromJson(configResult.toString(), ConfigModel.class);
+                        ConnectionModel connectionModel = new ConnectionModel();
+                        connectionModel.setConfigModel(configModel);
+                        connectionModel.setUserTenants(userTenants);
+                        ConnectionMutableLiveData.postValue(connectionModel);
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        errorUserListMutableList.postValue(message);
+                    }
+                });
             }
+        });
+    }
 
+    public void accessOrganization(Context context, String accessToken, String tunnel, String tunnelId, String username) {
+        Needle.onBackgroundThread().execute(new Runnable() {
             @Override
-            public void onSuccess(JSONObject tenantListResult, JSONObject configResult) {
-                UserTenants userTenants = new Gson().fromJson(tenantListResult.toString(), UserTenants.class);
-                ConfigModel configModel = new Gson().fromJson(configResult.toString(), ConfigModel.class);
-                ConnectionModel connectionModel = new ConnectionModel();
-                connectionModel.setConfigModel(configModel);
-                connectionModel.setUserTenants(userTenants);
-                ConnectionMutableLiveData.postValue(connectionModel);
-            }
+            public void run() {
+                mainHomeRepo.accessOrganization(context, accessToken, username, tunnel, tunnelId, new ViewModelCallBacks() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        Log.e("accessOrganization", result.toString());
+                        timeLeftMutableLiveData.postValue(result.optString("end_time"));
+                    }
 
-            @Override
-            public void onError(String message) {
-                errorUserListMutableList.postValue(message);
+                    @Override
+                    public void onSuccess(JSONObject tenantListResult, JSONObject configResult) {
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        errorTimeLeftMutableList.postValue(message);
+                    }
+                });
             }
         });
     }

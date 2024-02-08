@@ -4,6 +4,7 @@ public class StaticData {
     //    public static String baseUrl = "https://naas.insidepacket.com/broker/users/";
     public static String baseUrl = "https://naas.insidepacket.com/broker/";
     public static String tunnel = "wg_tunnel/";
+    public static String trusted_access = "trusted_access/";
     public static String user = "users/";
     public static String token = "get_token";
     public static String config = "get_conf/";
@@ -17,5 +18,9 @@ public class StaticData {
 
     public static String getUserListUrl(String tunnel, String username) {
         return StaticData.baseUrl + "service/" + tunnel + "/" + StaticData.tunnel + userList + username;
+    }
+
+    public static String getAccessOrgUrl(String tunnel, String username, String tunnelId) {
+        return StaticData.baseUrl + "service/" + tunnel + "/" + StaticData.trusted_access + username + "/" + tunnelId ;
     }
 }

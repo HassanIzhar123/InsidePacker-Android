@@ -56,4 +56,7 @@
     <string name="set_as_trusted">set as trusted</string>
     <string name="no_tunnels_available">No Tunnels Available</string>
     <string name="no_wifi_available">No Wifi Available</string>
+    <string name="access_organization_resources">Access Organization\nResources</string>
+    <string name="not_trusted_cloud_image">not_trusted_cloud_image</string>
+    <string name="time_left">Time left:</string>
 </resources>

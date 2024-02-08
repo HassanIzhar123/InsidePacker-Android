@@ -21,7 +21,7 @@ public class HomeRepo {
         apiClient = ApiClient.getInstance(context);
         String userListUrl = StaticData.getUserListUrl(tunnel, username);
         Log.e("userListUrl", userListUrl + " " + accessToken);
-        apiClient.getRequest(userListUrl, tunnel,username,accessToken, new VolleyCallback() {
+        apiClient.getRequest(userListUrl, tunnel, username, accessToken, new VolleyCallback() {
             @Override
             public void onSuccess(JSONObject tenantListResult) {
 
@@ -35,6 +35,28 @@ public class HomeRepo {
             @Override
             public void onError(String message) {
                 callBacks.onError(message);
+            }
+        });
+    }
+
+    public void accessOrganization(Context context, String accessToken, String username, String tunnel, String tunnelId, ViewModelCallBacks accessOrg) {
+        apiClient = ApiClient.getInstance(context);
+        String accessOrgUrl = StaticData.getAccessOrgUrl(tunnel, username, tunnelId);
+        Log.e("accessOrgUrl", accessOrgUrl);
+        apiClient.getRequest(accessOrgUrl, accessToken, new VolleyCallback() {
+            @Override
+            public void onSuccess(JSONObject tenantListResult) {
+                accessOrg.onSuccess(tenantListResult);
+            }
+
+            @Override
+            public void onSuccess(JSONObject tenantListResult, JSONObject tunnelJson) {
+
+            }
+
+            @Override
+            public void onError(String message) {
+                accessOrg.onError(message);
             }
         });
     }

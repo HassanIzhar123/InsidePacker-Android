@@ -3,6 +3,7 @@ package com.wireguard.insidepacker_android.models.settings;
 import androidx.annotation.NonNull;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -42,5 +43,4 @@ public class SelectedTrustedWifi implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
-
 }

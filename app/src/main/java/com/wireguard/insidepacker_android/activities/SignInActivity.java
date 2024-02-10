@@ -23,6 +23,7 @@ import com.wireguard.insidepacker_android.ViewModels.SignInViewModel.SignInViewM
 import com.wireguard.insidepacker_android.models.AccessToken.AccessToken;
 import com.wireguard.insidepacker_android.models.BasicInformation.BasicInformation;
 import com.wireguard.insidepacker_android.utils.PreferenceManager;
+import com.wireguard.insidepacker_android.utils.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -96,17 +97,8 @@ public class SignInActivity extends AppCompatActivity {
         basicInformation.setTenantName(demo);
         return basicInformation;
     }
-
-    private Dialog showProgressDialog() {
-        Dialog dialog = new Dialog(SignInActivity.this);
-        dialog.requestWindowFeature(1);
-        dialog.setContentView(R.layout.loading_process_dialog);
-        dialog.setCancelable(false);
-        return dialog;
-    }
-
     private void initializeViewModels() {
-        progressDialog = showProgressDialog();
+        progressDialog = new Utils().showProgressDialog(SignInActivity.this);
         signInViewModel.getAccessTokenMutableLiveData().observe(mContext, new Observer<AccessToken>() {
             @Override
             public void onChanged(AccessToken accessToken) {

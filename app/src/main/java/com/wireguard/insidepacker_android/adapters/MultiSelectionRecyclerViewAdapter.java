@@ -11,17 +11,17 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.wireguard.insidepacker_android.R;
+import com.wireguard.insidepacker_android.models.settings.TrustedWifi;
 
 import java.util.List;
 
 public class MultiSelectionRecyclerViewAdapter extends RecyclerView.Adapter<MultiSelectionRecyclerViewAdapter.ViewHolder> {
 
-    private final List<String> items;
-    private final SparseBooleanArray selectedItems;
+    private final List<TrustedWifi> items;
+    private OnCheckedChangeListener checkedChangeListener;
 
-    public MultiSelectionRecyclerViewAdapter(List<String> items) {
+    public MultiSelectionRecyclerViewAdapter(List<TrustedWifi> items) {
         this.items = items;
-        selectedItems = new SparseBooleanArray();
     }
 
     @NonNull
@@ -29,20 +29,16 @@ public class MultiSelectionRecyclerViewAdapter extends RecyclerView.Adapter<Mult
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_checkbox, parent, false);
-        return new ViewHolder(view);
+        return new ViewHolder(view, checkedChangeListener);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String item = items.get(position);
+        String item = items.get(position).getName();
         holder.textView.setText(item);
-        holder.checkBox.setChecked(selectedItems.get(position, false));
-        holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked)
-                selectedItems.put(position, true);
-            else
-                selectedItems.delete(position);
-        });
+
+        // Check if the current item is in the list of selected items
+        holder.checkBox.setChecked(items.get(position).getSelected());
     }
 
     @Override
@@ -54,14 +50,27 @@ public class MultiSelectionRecyclerViewAdapter extends RecyclerView.Adapter<Mult
         CheckBox checkBox;
         TextView textView;
 
-        public ViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView, OnCheckedChangeListener checkedChangeListener) {
             super(itemView);
             checkBox = itemView.findViewById(R.id.checkBox);
             textView = itemView.findViewById(R.id.textView);
+            checkBox.setOnClickListener(v -> {
+                if (checkedChangeListener != null) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        boolean isChecked = checkBox.isChecked();
+                        checkedChangeListener.onCheckedChanged(position, isChecked);
+                    }
+                }
+            });
         }
     }
 
-    public SparseBooleanArray getSelectedItems() {
-        return selectedItems;
+    public interface OnCheckedChangeListener {
+        void onCheckedChanged(int position, boolean isChecked);
+    }
+
+    public void setOnCheckedChangeListener(OnCheckedChangeListener listener) {
+        this.checkedChangeListener = listener;
     }
 }

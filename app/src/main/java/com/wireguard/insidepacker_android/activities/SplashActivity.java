@@ -3,6 +3,8 @@ package com.wireguard.insidepacker_android.activities;
 import static com.wireguard.insidepacker_android.utils.SharedPrefsName._ACCESS_TOKEN;
 import static com.wireguard.insidepacker_android.utils.SharedPrefsName._PREFS_NAME;
 import static com.wireguard.insidepacker_android.utils.SharedPrefsName._USER_INFORMATION;
+import static com.wireguard.insidepacker_android.utils.WifiUtils.getPreviouslyConnectedWifiNames;
+import static com.wireguard.insidepacker_android.utils.WifiUtils.saveConnectedWifi;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -11,6 +13,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,6 +26,7 @@ import com.wireguard.insidepacker_android.ViewModels.SignInViewModel.SignInViewM
 import com.wireguard.insidepacker_android.essentials.SettingsSingleton;
 import com.wireguard.insidepacker_android.models.AccessToken.AccessToken;
 import com.wireguard.insidepacker_android.models.BasicInformation.BasicInformation;
+import com.wireguard.insidepacker_android.models.settings.Settings;
 import com.wireguard.insidepacker_android.utils.PreferenceManager;
 import com.wireguard.insidepacker_android.utils.Utils;
 
@@ -42,7 +46,9 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
         mContext = this;
-        SettingsSingleton.getInstance().setSettings(new Utils().getSettings(mContext));
+        Settings settings = new Utils().getSettings(mContext);
+        SettingsSingleton.getInstance().setSettings(settings);
+        saveConnectedWifi(mContext);
         signInViewModel = new ViewModelProvider(mContext).get(SignInViewModel.class);
         initializeViewModels();
         callAccessTokenApi();

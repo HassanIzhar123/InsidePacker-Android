@@ -126,6 +126,8 @@ public class HomeViewModel extends AndroidViewModel {
 
                     @Override
                     public void onError(String message) {
+                        //for testing only
+                        timeLeftMutableLiveData.postValue("180000");
                         errorTimeLeftMutableList.postValue(message);
                     }
                 });

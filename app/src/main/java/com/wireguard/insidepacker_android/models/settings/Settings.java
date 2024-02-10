@@ -3,7 +3,6 @@ package com.wireguard.insidepacker_android.models.settings;
 import androidx.annotation.NonNull;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.annotations.Expose;
@@ -25,10 +24,9 @@ public class Settings implements Serializable {
     @SerializedName("always_on_vpn")
     @Expose
     private Boolean alwaysOnVpn;
-    @SerializedName("selected_trusted_wifi")
+    @SerializedName("trusted_wifi")
     @Expose
-    private List<SelectedTrustedWifi> selectedTrustedWifi;
-    private final static long serialVersionUID = -7156228309456980209L;
+    private List<TrustedWifi> trustedWifi;
 
     public Boolean getSendCrashReports() {
         return sendCrashReports;
@@ -70,22 +68,22 @@ public class Settings implements Serializable {
         this.alwaysOnVpn = alwaysOnVpn;
     }
 
-    public List<SelectedTrustedWifi> getSelectedTrustedWifi() {
-        return selectedTrustedWifi;
+    public List<TrustedWifi> getTrustedWifi() {
+        return trustedWifi;
     }
 
-    public void setSelectedTrustedWifi(List<SelectedTrustedWifi> selectedTrustedWifi) {
-        this.selectedTrustedWifi = selectedTrustedWifi;
+    public void setTrustedWifi(List<TrustedWifi> trustedWifi) {
+        this.trustedWifi = trustedWifi;
     }
 
-    public List<String> getSelectedTrustedWifiNamesInListString() {
-        List<SelectedTrustedWifi> selectedTrustedWifi = getSelectedTrustedWifi();
-        List<String> selectedTrustedWifiNames = new ArrayList<>();
-        for (SelectedTrustedWifi selectedTrustedWifiItem : selectedTrustedWifi) {
-            selectedTrustedWifiNames.add(selectedTrustedWifiItem.getName());
-        }
-        return selectedTrustedWifiNames;
-    }
+//    public List<String> getSelectedTrustedWifiNamesInListString() {
+//        List<String> selectedTrustedWifi = getSelectedTrustedWifi();
+//        List<String> selectedTrustedWifiNames = new ArrayList<>();
+//        for (SelectedTrustedWifi selectedTrustedWifiItem : selectedTrustedWifi) {
+//            selectedTrustedWifiNames.add(selectedTrustedWifiItem.getName());
+//        }
+//        return selectedTrustedWifiNames;
+//    }
 
     @NonNull
     @Override
@@ -96,8 +94,7 @@ public class Settings implements Serializable {
                 ", automaticUpdate=" + automaticUpdate +
                 ", tunnels=" + tunnels +
                 ", alwaysOnVpn=" + alwaysOnVpn +
-                ", selectedTrustedWifi=" + selectedTrustedWifi +
+                ", selectedTrustedWifi=" + trustedWifi +
                 '}';
     }
-
 }

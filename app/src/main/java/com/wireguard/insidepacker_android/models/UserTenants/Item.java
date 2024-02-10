@@ -3,7 +3,9 @@ package com.wireguard.insidepacker_android.models.UserTenants;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.annotations.Expose;
 
-public class Item {
+import java.io.Serializable;
+
+public class Item implements Serializable {
 
     @SerializedName("tenant_name")
     @Expose

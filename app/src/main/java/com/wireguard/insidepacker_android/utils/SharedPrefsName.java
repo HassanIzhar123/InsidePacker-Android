@@ -7,4 +7,5 @@ public class SharedPrefsName {
     public static String _IS_TRUSTED_WIFI = "IsTrustedWifi";
     public static String _SELECTED_WIFI = "SelectedWifi";
     public static String _SETTINGS = "Settings";
+    public static String WIFI_LIST_KEY = "wifi_list";
 }

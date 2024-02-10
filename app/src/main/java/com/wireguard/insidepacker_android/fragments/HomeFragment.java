@@ -7,13 +7,22 @@ import static com.wireguard.insidepacker_android.utils.SharedPrefsName._PREFS_NA
 import static com.wireguard.insidepacker_android.utils.SharedPrefsName._USER_INFORMATION;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
+import android.media.RingtoneManager;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,7 +35,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -42,12 +53,17 @@ import com.wireguard.config.Interface;
 import com.wireguard.config.Peer;
 import com.wireguard.insidepacker_android.R;
 import com.wireguard.insidepacker_android.ViewModels.HomeViewModel.HomeViewModel;
+import com.wireguard.insidepacker_android.activities.SignInActivity;
+import com.wireguard.insidepacker_android.activities.SplashActivity;
 import com.wireguard.insidepacker_android.essentials.PersistentConnectionProperties;
 import com.wireguard.insidepacker_android.essentials.SettingsSingleton;
 import com.wireguard.insidepacker_android.models.BasicInformation.BasicInformation;
 import com.wireguard.insidepacker_android.models.ConfigModel.ConfigModel;
 import com.wireguard.insidepacker_android.models.UserTenants.Item;
+import com.wireguard.insidepacker_android.models.settings.TrustedWifi;
+import com.wireguard.insidepacker_android.services.BroadcastService;
 import com.wireguard.insidepacker_android.utils.PreferenceManager;
+import com.wireguard.insidepacker_android.utils.Utils;
 
 import java.util.Calendar;
 import java.util.List;
@@ -71,6 +87,7 @@ public class HomeFragment extends Fragment {
     LinearLayout wifiStatusLayout;
     TextView wifiNameText, trustedNetworkText, timeLeftText;
     Item currentItem;
+    Dialog progressDialog;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -96,7 +113,6 @@ public class HomeFragment extends Fragment {
     private void onClickListeners() {
         connectedButton.setOnClickListener(v -> {
             homeViewModel.getUserList(mContext, preferenceManager.getValue(_ACCESS_TOKEN, ""), basicInformation.getTenantName(), basicInformation.getUsername());
-
         });
 
         disconnectButton.setOnClickListener(v -> {
@@ -119,6 +135,8 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (currentItem != null) {
+                    progressDialog = new Utils().showProgressDialog(mContext);
+                    progressDialog.show();
                     homeViewModel.accessOrganization(mContext,
                             preferenceManager.getValue(_ACCESS_TOKEN, ""),
                             currentItem.getTenantName(),
@@ -145,12 +163,22 @@ public class HomeFragment extends Fragment {
         trustedNetworkText = view.findViewById(R.id.trusted_network_text);
         wifiNameText = view.findViewById(R.id.wifi_name_text);
         timeLeftText = view.findViewById(R.id.time_left_text);
-        toggleViews(false, false);
+        toggleViews(false, isTrustedWifi);
     }
 
     private void initializeSharedPreference() {
         preferenceManager = new PreferenceManager(mContext, _PREFS_NAME);
-        isTrustedWifi = !(String.join(",", SettingsSingleton.getInstance().getSettings().getSelectedTrustedWifiNamesInListString()).isEmpty());
+        isTrustedWifi = checkIfAnyWifiIsTrusted();
+    }
+
+    private boolean checkIfAnyWifiIsTrusted() {
+        List<TrustedWifi> trustedWifi = SettingsSingleton.getInstance().getSettings().getTrustedWifi();
+        for (int i = 0; i < trustedWifi.size(); i++) {
+            if (trustedWifi.get(i).getSelected()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @SuppressLint("SetTextI18n")
@@ -163,7 +191,10 @@ public class HomeFragment extends Fragment {
                 if (!connectionModel.getUserTenants().getItems().isEmpty()) {
                     List<Item> items = connectionModel.getUserTenants().getItems();
                     currentItem = getSelectedTunnel(items);
-                    initConnection(currentItem, connectionModel.getConfigModel());
+                    Intent ii = new Intent(mContext.getApplicationContext(), SplashActivity.class);
+                    PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, ii, PendingIntent.FLAG_IMMUTABLE);
+                    new Utils().showPermanentNotification(mContext, "notify_001", "Vpn is Running!", 0, pendingIntent);
+                    connectVpn(currentItem, connectionModel.getConfigModel());
                 }
             }
         });
@@ -171,18 +202,9 @@ public class HomeFragment extends Fragment {
             Toast.makeText(mContext, s, Toast.LENGTH_SHORT).show();
         });
         homeViewModel.getTimeLeftMutableLiveData().observe(mContext, s -> {
-            long givenMillis = TimeUnit.SECONDS.toMillis(Long.parseLong(s));
-            Calendar currentCal = Calendar.getInstance();
-            Calendar givenCal = Calendar.getInstance(Locale.ENGLISH);
-            givenCal.setTimeInMillis(givenMillis);
-            long remainingMillis = givenMillis - currentCal.getTimeInMillis();
-            long days = TimeUnit.MILLISECONDS.toDays(remainingMillis);
-            long hours = TimeUnit.MILLISECONDS.toHours(remainingMillis) % 24;
-            long minutes = TimeUnit.MILLISECONDS.toMinutes(remainingMillis) % 60;
-            long seconds = TimeUnit.MILLISECONDS.toSeconds(remainingMillis) % 60;
-            String formattedTime = String.format(Locale.ENGLISH, "%02d:%02d:%02d:%02d", days, hours, minutes, seconds);
-            Log.e("Remaining time: ", formattedTime);
-            timeLeftText.setText("Time left: " + formattedTime);
+            handleStartTimer(s);
+            progressDialog.dismiss();
+
         });
         homeViewModel.getErrorTimeLeftMutableList().observe(mContext, s -> {
             Toast.makeText(mContext, s, Toast.LENGTH_SHORT).show();
@@ -211,7 +233,7 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    private void initConnection(Item item, ConfigModel configModel) {
+    private void connectVpn(Item item, ConfigModel configModel) {
         try {
             backend.getRunningTunnelNames();
         } catch (NullPointerException e) {
@@ -265,7 +287,7 @@ public class HomeFragment extends Fragment {
         Needle.onMainThread().execute(new Runnable() {
             @Override
             public void run() {
-                Log.e("netWorkStatus", "" + isConnected + " " + isTrustedWifi);
+                Log.e("netWorkStatus", isConnected + " " + isTrustedWifi);
                 if (isConnected) {
                     WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
                     WifiInfo wifiInfo;
@@ -314,5 +336,66 @@ public class HomeFragment extends Fragment {
                 }
             }
         });
+    }
+
+    public void handleStartTimer(String milliseconds) {
+        Intent intent = new Intent(mContext, BroadcastService.class);
+        intent.putExtra("maxCountDownValue", milliseconds);
+        mContext.startForegroundService(intent);
+    }
+
+    public void handleCancelTimer() {
+        Intent intent = new Intent(mContext, BroadcastService.class);
+        mContext.stopService(intent);
+    }
+
+    /* CountDown */
+    final private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            updateGUI(intent);
+        }
+    };
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    @Override
+    public void onResume() {
+        super.onResume();
+        mContext.registerReceiver(receiver, new IntentFilter(BroadcastService.COUNTDOWN_BR), Context.RECEIVER_EXPORTED);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mContext.unregisterReceiver(receiver);
+    }
+
+    @Override
+    public void onStop() {
+        try {
+            mContext.unregisterReceiver(receiver);
+        } catch (Exception e) {
+            // Receiver was probably already stopped in onPause()
+        }
+        super.onStop();
+    }
+
+    private void updateGUI(Intent intent) {
+        if (intent.getExtras() != null) {
+            long millisUntilFinished = intent.getLongExtra("countdown", 0);
+            long seconds = (millisUntilFinished / 1000) % 60;
+            long minutes = (millisUntilFinished / (1000 * 60)) % 60;
+            long hours = (millisUntilFinished / (1000 * 60 * 60)) % 60;
+            String time = (hours + " : " + minutes + " : " + seconds);
+            timeLeftText.setText(time);
+            boolean countdownTimerFinished = intent.getBooleanExtra("countdownTimerFinished", true);
+            if (countdownTimerFinished) {
+                timeLeftText.setVisibility(View.GONE);
+                toggleViews(true, false);
+            } else {
+                timeLeftText.setVisibility(View.VISIBLE);
+                toggleViews(true, true);
+            }
+        }
     }
 }

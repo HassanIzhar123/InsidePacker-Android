@@ -189,15 +189,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="20dp" />
 
-                    <Button
-                        android:id="@+id/submitButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/tunnel_recyclerview"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginTop="10dp"
-                        android:text="@string/set_as_trusted" />
-
                     <TextView
                         android:id="@+id/empty_wifi_text"
                         android:layout_width="wrap_content"

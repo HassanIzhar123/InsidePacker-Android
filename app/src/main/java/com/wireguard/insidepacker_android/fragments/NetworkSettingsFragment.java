@@ -1,15 +1,14 @@
 package com.wireguard.insidepacker_android.fragments;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
@@ -23,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.wireguard.insidepacker_android.R;
 import com.wireguard.insidepacker_android.adapters.MultiSelectionRecyclerViewAdapter;
 import com.wireguard.insidepacker_android.essentials.SettingsSingleton;
+import com.wireguard.insidepacker_android.models.settings.TrustedWifi;
 import com.wireguard.insidepacker_android.utils.Utils;
 import com.wireguard.insidepacker_android.utils.WifiUtils;
 
@@ -34,10 +34,9 @@ public class NetworkSettingsFragment extends Fragment {
     SettingsSingleton settingsSingleton = SettingsSingleton.getInstance();
     RecyclerView recyclerView;
     TextView emptyWifiText;
-    Button submitButton;
     SwitchCompat alwaysOnVpnSwitch;
     MultiSelectionRecyclerViewAdapter adapter;
-    List<String> wifiList;
+    List<TrustedWifi> wifiList;
     Boolean isAlwaysOnVpnSwitchTouched = false;
 
     @Override
@@ -58,27 +57,18 @@ public class NetworkSettingsFragment extends Fragment {
     }
 
     private void setUi() {
-        Log.e("AlwaysOnVpn", "" + settingsSingleton.getSettings().getAlwaysOnVpn());
         alwaysOnVpnSwitch.setChecked(settingsSingleton.getSettings().getAlwaysOnVpn());
-        wifiList = WifiUtils.getPreviouslyConnectedWifiNames(context);
-        Log.e("WifiNames", "" + wifiList);
-        if (wifiList != null) {
-            if (wifiList.isEmpty()) {
-                emptyWifiText.setVisibility(View.VISIBLE);
-                recyclerView.setVisibility(View.GONE);
-                submitButton.setVisibility(View.GONE);
-            } else {
-                emptyWifiText.setVisibility(View.GONE);
-                recyclerView.setVisibility(View.VISIBLE);
-                submitButton.setVisibility(View.VISIBLE);
-                recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-                adapter = new MultiSelectionRecyclerViewAdapter(wifiList);
-                recyclerView.setAdapter(adapter);
-            }
-        } else {
+        wifiList = WifiUtils.getPreviouslyConnectedWifiNames();
+        List<TrustedWifi> selectWifi = SettingsSingleton.getInstance().getSettings().getTrustedWifi();
+        if (wifiList.isEmpty()) {
             emptyWifiText.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
-            submitButton.setVisibility(View.GONE);
+        } else {
+            emptyWifiText.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            adapter = new MultiSelectionRecyclerViewAdapter(selectWifi);
+            recyclerView.setAdapter(adapter);
         }
     }
 
@@ -101,23 +91,27 @@ public class NetworkSettingsFragment extends Fragment {
                 }
             }
         });
-        submitButton.setOnClickListener(v -> {
-            SparseBooleanArray selectedItems = adapter.getSelectedItems();
-            for (int i = 0; i < selectedItems.size(); i++) {
-                int position = selectedItems.keyAt(i);
-                if (selectedItems.get(position)) {
-                    String selectedItem = wifiList.get(position);
-                    Log.e("Selected Item", selectedItem);
+        if (adapter != null) {
+            adapter.setOnCheckedChangeListener(new MultiSelectionRecyclerViewAdapter.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(int position, boolean isChecked) {
+                    Log.e("isChecked", "onCheckedChanged: " + isChecked);
+                    if (isChecked) {
+                        wifiList.get(position).setSelected(true);
+                        settingsSingleton.getSettings().setTrustedWifi(wifiList);
+                    } else {
+                        wifiList.get(position).setSelected(false);
+                        settingsSingleton.getSettings().setTrustedWifi(wifiList);
+                    }
+                    new Utils().saveSettings(getContext(), settingsSingleton.getSettings());
                 }
-            }
-        });
+            });
+        }
     }
 
     private void initializeComponents() {
         recyclerView = view.findViewById(R.id.tunnel_recyclerview);
         emptyWifiText = view.findViewById(R.id.empty_wifi_text);
-        submitButton = view.findViewById(R.id.submitButton);
         alwaysOnVpnSwitch = view.findViewById(R.id.always_on_vpn_switch);
-        submitButton = view.findViewById(R.id.submitButton);
     }
 }

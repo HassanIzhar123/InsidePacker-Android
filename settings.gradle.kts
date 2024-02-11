@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "InsidePacker-Android"
+rootProject.name = "InsidePacket-Android"
 include(":app")
  

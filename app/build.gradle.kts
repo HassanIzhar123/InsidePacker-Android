@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.wireguard.insidepacker_android"
+    namespace = "com.wireguard.insidepacket_android"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.wireguard.insidepacker_android"
+        applicationId = "com.wireguard.insidepacket_android"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

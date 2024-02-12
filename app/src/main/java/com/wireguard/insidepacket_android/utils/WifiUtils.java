@@ -67,8 +67,8 @@ public class WifiUtils {
 
         int res = context.checkCallingOrSelfPermission(permission);
 
-        Log.e("TAG", "permission: " + permission + " = \t\t" +
-                (res == PackageManager.PERMISSION_GRANTED ? "GRANTED" : "DENIED"));
+        //Log.e("TAG", "permission: " + permission + " = \t\t" +
+//                (res == PackageManager.PERMISSION_GRANTED ? "GRANTED" : "DENIED"));
 
         return res == PackageManager.PERMISSION_GRANTED;
 

@@ -126,7 +126,7 @@ public class ApiClient {
                         JSONArray items = tenantListResult.getJSONArray("items");
                         if (items.length() > 0) {
                             JSONObject item = new JSONObject(items.get(0).toString());
-                            Log.e("tenantListResult", "" + item);
+                            //Log.e("tenantListResult", "" + item);
                             String tunnelUrl = StaticData.getTunnelUrl(tunnel, username, item.optString("tunnel_id"));
                             JsonObjectRequest request = new JsonObjectRequest(tunnelUrl, new Response.Listener<JSONObject>() {
                                 @Override
@@ -201,7 +201,7 @@ public class ApiClient {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Log.e("volleyError", ""+error);
+                    //Log.e("volleyError", ""+error);
                     String body;
                     if (error != null && error.networkResponse != null) {
                         if (error.networkResponse.data != null) {
@@ -224,7 +224,7 @@ public class ApiClient {
             addToRequestQueue(request);
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e("error", ""+e.getStackTrace().toString());
+            //Log.e("error", ""+e.getStackTrace().toString());
             callback.onError(e.getMessage());
         }
     }

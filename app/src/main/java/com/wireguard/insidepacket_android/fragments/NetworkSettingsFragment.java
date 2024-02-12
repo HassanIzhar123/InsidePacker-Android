@@ -96,7 +96,7 @@ public class NetworkSettingsFragment extends Fragment {
             adapter.setOnCheckedChangeListener(new MultiSelectionRecyclerViewAdapter.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(int position, boolean isChecked) {
-                    Log.e("isChecked", "onCheckedChanged: " + isChecked);
+                    //Log.e("isChecked", "onCheckedChanged: " + isChecked);
                     if (isChecked) {
                         wifiList.get(position).setSelected(true);
                         settingsSingleton.getSettings().setTrustedWifi(wifiList);

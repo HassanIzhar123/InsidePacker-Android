@@ -4,4 +4,10 @@
     <color name="white">#FFFFFFFF</color>
     <color name="blue">#0D0038</color>
     <color name="purple">#6B55F0</color>
+
+    <color name="debug_tag_color">#aaaaaa</color>
+    <color name="error_tag_color">#ff0000</color>
+    <color name="info_tag_color">#00ff00</color>
+    <color name="warning_tag_color">#ffff00</color>
+    <color name="theme_purple">#6B55F0</color>
 </resources>

@@ -16,7 +16,7 @@ public class PersistentConnectionProperties {
         } catch (NullPointerException e) {
             tunnel = new WgTunnel();
         }
-        Log.e("tunnel naem",""+tunnel);
+        //Log.e("tunnel naem",""+tunnel);
         return tunnel;
     }
 

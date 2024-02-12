@@ -126,7 +126,7 @@ public class HomeViewModel extends AndroidViewModel {
                 mainHomeRepo.accessOrganization(context, accessToken, username, tunnel, tunnelId, new ViewModelCallBacks() {
                     @Override
                     public void onSuccess(JSONObject result) {
-                        Log.e("accessOrganization", result.toString());
+                        //Log.e("accessOrganization", result.toString());
                         timeLeftMutableLiveData.postValue(result.optString("end_time"));
                     }
 

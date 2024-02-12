@@ -22,6 +22,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.text.format.Formatter;
@@ -65,6 +66,10 @@ import com.wireguard.insidepacket_android.services.BroadcastService;
 import com.wireguard.insidepacket_android.utils.PreferenceManager;
 import com.wireguard.insidepacket_android.utils.Utils;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -293,7 +298,7 @@ public class HomeFragment extends Fragment {
                         toggleViews(false, isTrustedWifi);
                         handler.removeCallbacksAndMessages(null);
                     } else {
-                        handler.removeCallbacksAndMessages(null);
+//                        handler.removeCallbacksAndMessages(null);
                         List<InetNetwork> allowedIp;
                         if (isTrustedWifi) {
                             allowedIp = parseAllowedIPs(configModel.getAllowedIps());
@@ -306,7 +311,7 @@ public class HomeFragment extends Fragment {
 //                        configModel.setRemoteIp("139.178.81.253");
 //                        configModel.setRemotePort("52078");
 //                        configModel.setPublicKey("SYHr+NMIPZt3EWgabfsbw2fbw7rKUVONxMpJG5s/DA8=");
-//                        Log.e("allowedIp", String.valueOf(allowedIp));
+//                        //Log.e("allowedIp", String.valueOf(allowedIp));
                         Config.Builder builder = new Config.Builder();
                         backend.setState(
                                 tunnel,
@@ -330,12 +335,12 @@ public class HomeFragment extends Fragment {
                                         )
                                         .build()
                         );
-                        Log.e("WireGaurdNewPackage", "Tunnel IP: " + item.getTunnelIp());
-                        Log.e("WireGaurdNewPackage", "Tunnel Private Key: " + configModel.getTunnelPrivateKey());
-                        Log.e("WireGaurdNewPackage", "Remote IP: " + configModel.getRemoteIp());
-                        Log.e("WireGaurdNewPackage", "Remote Port: " + configModel.getRemotePort());
-                        Log.e("WireGaurdNewPackage", "Public Key: " + item.getPublicKey() + " " + configModel.getPublicKey());
-                        Log.e("WireGaurdNewPackage", "Allowed IPs: " + allowedIp);
+                        //Log.e("WireGaurdNewPackage", "Tunnel IP: " + item.getTunnelIp());
+                        //Log.e("WireGaurdNewPackage", "Tunnel Private Key: " + configModel.getTunnelPrivateKey());
+                        //Log.e("WireGaurdNewPackage", "Remote IP: " + configModel.getRemoteIp());
+                        //Log.e("WireGaurdNewPackage", "Remote Port: " + configModel.getRemotePort());
+                        //Log.e("WireGaurdNewPackage", "Public Key: " + item.getPublicKey() + " " + configModel.getPublicKey());
+                        //Log.e("WireGaurdNewPackage", "Allowed IPs: " + allowedIp);
                         SettingsSingleton.getInstance().setTunnelConnected(true);
                         toggleViews(true, isTrustedWifi);
                     }
@@ -369,13 +374,59 @@ public class HomeFragment extends Fragment {
                     s_netmask = "Subnet Mask: " + d.netmask;
                     s_serverAddress = "Server IP: " + Formatter.formatIpAddress(d.serverAddress);
 
-                    Log.e("data", "Network Info\n" + s_dns1 + "\n" + s_dns2 + "\n" + s_gateway + "\n" + s_ipAddress + "\n" + s_leaseDuration + "\n" + s_netmask + "\n" + s_serverAddress);
+//                    //Log.e("data", "Network Info\n" + s_dns1 + "\n" + s_dns2 + "\n" + s_gateway + "\n" + s_ipAddress + "\n" + s_leaseDuration + "\n" + s_netmask + "\n" + s_serverAddress);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
+//                StringBuilder log = new StringBuilder();
+//                String separator = System.getProperty("line.separator");
+//                try {
+//                    Process process = Runtime.getRuntime().exec("logcat -d");
+//                    BufferedReader bufferedReader = new BufferedReader(
+//                            new InputStreamReader(process.getInputStream()));
+//
+//                    String line;
+//                    while ((line = bufferedReader.readLine()) != null) {
+//                        log.append(line);
+//                        log.append(separator);
+//                    }
+//                    //Log.e("logcapture", "" + log.toString());
+//
+//                } catch (Exception e) {
+//                    //Log.e("logcapture", "" + e.toString());
+//                }
+//                SendLogcatMail();
                 handler.postDelayed(this, delay);
             }
         }, delay);
+    }
+
+    public void SendLogcatMail() {
+        //get only wiregaurd logs
+        ProcessBuilder builder = new ProcessBuilder().command("logcat", "-b", "all", "-v", "threadtime", "*:V");
+        builder.environment().put("LC_ALL", "C");
+        Process process = null;
+        BufferedReader stdout = null;
+        try {
+            process = builder.start();
+            stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
+            while (true) {
+                String line = stdout.readLine();
+                if (line == null) break;
+                //Log.e("logcat", "" + line);
+            }
+        } catch (Exception e) {
+            //Log.e("logcat", "" + e.toString());
+        } finally {
+            if (process != null) process.destroy();
+            if (stdout != null) {
+                try {
+                    stdout.close();
+                } catch (IOException e) {
+                    //Log.e("logcat", "" + e.toString());
+                }
+            }
+        }
     }
 
     /**
@@ -410,7 +461,7 @@ public class HomeFragment extends Fragment {
         Needle.onMainThread().execute(new Runnable() {
             @Override
             public void run() {
-                Log.e("netWorkStatus", isConnected + " " + isTrustedWifi);
+                //Log.e("netWorkStatus", isConnected + " " + isTrustedWifi);
                 if (isConnected) {
                     WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
                     WifiInfo wifiInfo;

@@ -293,19 +293,20 @@ public class HomeFragment extends Fragment {
                         toggleViews(false, isTrustedWifi);
                         handler.removeCallbacksAndMessages(null);
                     } else {
+                        handler.removeCallbacksAndMessages(null);
                         List<InetNetwork> allowedIp;
-//                        if (isTrustedWifi) {
-//                        allowedIp = parseAllowedIPs(configModel.getAllowedIps());
-//                        } else {
-//                            allowedIp =parseAllowedIPs(configModel.getUntrustedAllowedIps());
-//                        }
-                        item.setTunnelIp("10.9.6.27");
-                        configModel.setTunnelPrivateKey("eBeqf7IU9tIZNiecdlcXng5qwA5Dhri0zMWW0gue21Y=");
-                        allowedIp = parseAllowedIPs("0.0.0.0/0");
-                        configModel.setRemoteIp("139.178.81.253");
-                        configModel.setRemotePort("52078");
-                        configModel.setPublicKey("SYHr+NMIPZt3EWgabfsbw2fbw7rKUVONxMpJG5s/DA8=");
-                        Log.e("allowedIp", String.valueOf(allowedIp));
+                        if (isTrustedWifi) {
+                            allowedIp = parseAllowedIPs(configModel.getAllowedIps());
+                        } else {
+                            allowedIp = parseAllowedIPs(configModel.getUntrustedAllowedIps());
+                        }
+//                        item.setTunnelIp("10.9.6.27");
+//                        configModel.setTunnelPrivateKey("eBeqf7IU9tIZNiecdlcXng5qwA5Dhri0zMWW0gue21Y=");
+//                        allowedIp = parseAllowedIPs("0.0.0.0/0");
+//                        configModel.setRemoteIp("139.178.81.253");
+//                        configModel.setRemotePort("52078");
+//                        configModel.setPublicKey("SYHr+NMIPZt3EWgabfsbw2fbw7rKUVONxMpJG5s/DA8=");
+//                        Log.e("allowedIp", String.valueOf(allowedIp));
                         Config.Builder builder = new Config.Builder();
                         backend.setState(
                                 tunnel,
@@ -315,7 +316,7 @@ public class HomeFragment extends Fragment {
                                                 interfaceBuilder
                                                         .addAddress(InetNetwork.parse(item.getTunnelIp()))
                                                         .parsePrivateKey(configModel.getTunnelPrivateKey())
-                                                        .addDnsServer(InetAddress.getByName("1.1.1.1"))
+                                                        .addDnsServer(InetAddress.getByName(configModel.getTunnelDNS()))
                                                         .build()
                                         )
                                         .addPeer(
@@ -354,10 +355,11 @@ public class HomeFragment extends Fragment {
                 String s_serverAddress;
                 TextView info;
                 DhcpInfo d;
-                WifiManager wifii = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+                WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
                 try {
-                    trafficStatus.setText("RX: " + backend.getStatistics(PersistentConnectionProperties.getInstance().getTunnel()).totalRx() + " TX: " + backend.getStatistics(tunnel).totalTx());
-                    d = wifii.getDhcpInfo();
+                    String traffic = backend.getStatistics(PersistentConnectionProperties.getInstance().getTunnel()).totalRx() + "/" + backend.getStatistics(tunnel).totalTx();
+                    trafficStatus.setText(traffic);
+                    d = wifiManager.getDhcpInfo();
 
                     s_dns1 = "DNS 1: " + d.dns1;
                     s_dns2 = "DNS 2: " + d.dns2;
@@ -375,15 +377,17 @@ public class HomeFragment extends Fragment {
             }
         }, delay);
     }
+
     /**
      * Convert a IPv4 address from an integer to an InetAddress.
+     *
      * @param hostAddress an int corresponding to the IPv4 address in network byte order
      */
     public static InetAddress intToInetAddress(int hostAddress) {
-        byte[] addressBytes = { (byte)(0xff & hostAddress),
-                (byte)(0xff & (hostAddress >> 8)),
-                (byte)(0xff & (hostAddress >> 16)),
-                (byte)(0xff & (hostAddress >> 24)) };
+        byte[] addressBytes = {(byte) (0xff & hostAddress),
+                (byte) (0xff & (hostAddress >> 8)),
+                (byte) (0xff & (hostAddress >> 16)),
+                (byte) (0xff & (hostAddress >> 24))};
 
         try {
             return InetAddress.getByAddress(addressBytes);
@@ -391,6 +395,7 @@ public class HomeFragment extends Fragment {
             throw new AssertionError();
         }
     }
+
     private List<InetNetwork> parseAllowedIPs(String allowedIPs) throws ParseException {
         List<InetNetwork> allowedIPRanges = new ArrayList<>();
         String[] ipRanges = allowedIPs.split(",");

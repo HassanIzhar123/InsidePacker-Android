@@ -1,5 +1,6 @@
 package com.wireguard.insidepacket_android.fragments;
 
+import static android.content.Context.RECEIVER_EXPORTED;
 import static com.wireguard.android.backend.Tunnel.State.DOWN;
 import static com.wireguard.android.backend.Tunnel.State.UP;
 import static com.wireguard.insidepacket_android.utils.SharedPrefsName._ACCESS_TOKEN;
@@ -21,8 +22,6 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.text.format.Formatter;
@@ -37,7 +36,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -45,13 +43,11 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.gson.Gson;
 import com.wireguard.android.backend.Backend;
 import com.wireguard.android.backend.GoBackend;
-import com.wireguard.android.backend.Statistics;
 import com.wireguard.android.backend.Tunnel;
 import com.wireguard.config.Config;
 import com.wireguard.config.InetEndpoint;
 import com.wireguard.config.InetNetwork;
 import com.wireguard.config.Interface;
-import com.wireguard.config.ParseException;
 import com.wireguard.config.Peer;
 import com.wireguard.insidepacket_android.R;
 import com.wireguard.insidepacket_android.ViewModels.HomeViewModel.HomeViewModel;
@@ -66,13 +62,7 @@ import com.wireguard.insidepacket_android.services.BroadcastService;
 import com.wireguard.insidepacket_android.utils.PreferenceManager;
 import com.wireguard.insidepacket_android.utils.Utils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.List;
 
 import needle.Needle;
@@ -90,7 +80,7 @@ public class HomeFragment extends Fragment {
     ImageView disconnectedLayout, connectedLayout, disconnectedCloudImage, connectedCloudImage;
     RelativeLayout notTrustedCloudImage, trustedTextLayout;
     LinearLayout wifiStatusLayout;
-    TextView wifiNameText, trustedNetworkText, timeLeftText, trafficStatus;
+    TextView wifiNameText, trustedNetworkText, timeLeftText, trafficStatus, tunnelIpStatus;
     Item currentItem;
     Dialog progressDialog;
     final Handler handler = new Handler();
@@ -175,6 +165,7 @@ public class HomeFragment extends Fragment {
         wifiNameText = view.findViewById(R.id.wifi_name_text);
         timeLeftText = view.findViewById(R.id.time_left_text);
         trafficStatus = view.findViewById(R.id.traffic_status);
+        tunnelIpStatus = view.findViewById(R.id.tunnel_ip_status);
         toggleViews(false, isTrustedWifi);
     }
 
@@ -244,6 +235,11 @@ public class HomeFragment extends Fragment {
                 }
             }
         });
+        homeViewModel.getIpAddressMutableLiveData().observe(mContext, object -> {
+            if (object != null) {
+                Log.e("ipAddress", object.toString());
+            }
+        });
     }
 
     private Item getSelectedTunnel(List<Item> items) {
@@ -271,7 +267,6 @@ public class HomeFragment extends Fragment {
     private void connectVpn(Item item, ConfigModel configModel) {
         try {
             backend.getRunningTunnelNames();
-//            backend.getStatistics(PersistentConnectionProperties.getInstance().getTunnel());
         } catch (NullPointerException e) {
             PersistentConnectionProperties.getInstance().setBackend(new GoBackend(mContext));
             backend = PersistentConnectionProperties.getInstance().getBackend();
@@ -301,9 +296,9 @@ public class HomeFragment extends Fragment {
 //                        handler.removeCallbacksAndMessages(null);
                         List<InetNetwork> allowedIp;
                         if (isTrustedWifi) {
-                            allowedIp = parseAllowedIPs(configModel.getAllowedIps());
+                            allowedIp = new Utils().parseAllowedIPs(configModel.getAllowedIps());
                         } else {
-                            allowedIp = parseAllowedIPs(configModel.getUntrustedAllowedIps());
+                            allowedIp = new Utils().parseAllowedIPs(configModel.getUntrustedAllowedIps());
                         }
 //                        item.setTunnelIp("10.9.6.27");
 //                        configModel.setTunnelPrivateKey("eBeqf7IU9tIZNiecdlcXng5qwA5Dhri0zMWW0gue21Y=");
@@ -335,6 +330,8 @@ public class HomeFragment extends Fragment {
                                         )
                                         .build()
                         );
+                        homeViewModel.getIpAddress(mContext);
+
                         //Log.e("WireGaurdNewPackage", "Tunnel IP: " + item.getTunnelIp());
                         //Log.e("WireGaurdNewPackage", "Tunnel Private Key: " + configModel.getTunnelPrivateKey());
                         //Log.e("WireGaurdNewPackage", "Remote IP: " + configModel.getRemoteIp());
@@ -343,6 +340,7 @@ public class HomeFragment extends Fragment {
                         //Log.e("WireGaurdNewPackage", "Allowed IPs: " + allowedIp);
                         SettingsSingleton.getInstance().setTunnelConnected(true);
                         toggleViews(true, isTrustedWifi);
+
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -351,109 +349,28 @@ public class HomeFragment extends Fragment {
         });
         handler.postDelayed(new Runnable() {
             public void run() {
-                String s_dns1;
-                String s_dns2;
-                String s_gateway;
-                String s_ipAddress;
-                String s_leaseDuration;
-                String s_netmask;
-                String s_serverAddress;
-                TextView info;
-                DhcpInfo d;
                 WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
                 try {
                     String traffic = backend.getStatistics(PersistentConnectionProperties.getInstance().getTunnel()).totalRx() + "/" + backend.getStatistics(tunnel).totalTx();
                     trafficStatus.setText(traffic);
-                    d = wifiManager.getDhcpInfo();
+                    DhcpInfo d = wifiManager.getDhcpInfo();
 
-                    s_dns1 = "DNS 1: " + d.dns1;
-                    s_dns2 = "DNS 2: " + d.dns2;
-                    s_gateway = "Default Gateway: " + intToInetAddress(d.gateway).getHostAddress();
-                    s_ipAddress = "IP Address: " + Formatter.formatIpAddress(d.ipAddress);
-                    s_leaseDuration = "Lease Time: " + d.leaseDuration;
-                    s_netmask = "Subnet Mask: " + d.netmask;
-                    s_serverAddress = "Server IP: " + Formatter.formatIpAddress(d.serverAddress);
+                    String s_dns1 = "DNS 1: " + d.dns1;
+                    String s_dns2 = "DNS 2: " + d.dns2;
+                    String s_gateway = "Default Gateway: " + new Utils().intToInetAddress(d.gateway).getHostAddress();
+                    String s_ipAddress = "IP Address: " + Formatter.formatIpAddress(d.ipAddress);
+                    String s_leaseDuration = "Lease Time: " + d.leaseDuration;
+                    String s_netmask = "Subnet Mask: " + d.netmask;
+                    String s_serverAddress = "Server IP: " + Formatter.formatIpAddress(d.serverAddress);
 
 //                    //Log.e("data", "Network Info\n" + s_dns1 + "\n" + s_dns2 + "\n" + s_gateway + "\n" + s_ipAddress + "\n" + s_leaseDuration + "\n" + s_netmask + "\n" + s_serverAddress);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-//                StringBuilder log = new StringBuilder();
-//                String separator = System.getProperty("line.separator");
-//                try {
-//                    Process process = Runtime.getRuntime().exec("logcat -d");
-//                    BufferedReader bufferedReader = new BufferedReader(
-//                            new InputStreamReader(process.getInputStream()));
-//
-//                    String line;
-//                    while ((line = bufferedReader.readLine()) != null) {
-//                        log.append(line);
-//                        log.append(separator);
-//                    }
-//                    //Log.e("logcapture", "" + log.toString());
-//
-//                } catch (Exception e) {
-//                    //Log.e("logcapture", "" + e.toString());
-//                }
-//                SendLogcatMail();
                 handler.postDelayed(this, delay);
             }
         }, delay);
-    }
-
-    public void SendLogcatMail() {
-        //get only wiregaurd logs
-        ProcessBuilder builder = new ProcessBuilder().command("logcat", "-b", "all", "-v", "threadtime", "*:V");
-        builder.environment().put("LC_ALL", "C");
-        Process process = null;
-        BufferedReader stdout = null;
-        try {
-            process = builder.start();
-            stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
-            while (true) {
-                String line = stdout.readLine();
-                if (line == null) break;
-                //Log.e("logcat", "" + line);
-            }
-        } catch (Exception e) {
-            //Log.e("logcat", "" + e.toString());
-        } finally {
-            if (process != null) process.destroy();
-            if (stdout != null) {
-                try {
-                    stdout.close();
-                } catch (IOException e) {
-                    //Log.e("logcat", "" + e.toString());
-                }
-            }
-        }
-    }
-
-    /**
-     * Convert a IPv4 address from an integer to an InetAddress.
-     *
-     * @param hostAddress an int corresponding to the IPv4 address in network byte order
-     */
-    public static InetAddress intToInetAddress(int hostAddress) {
-        byte[] addressBytes = {(byte) (0xff & hostAddress),
-                (byte) (0xff & (hostAddress >> 8)),
-                (byte) (0xff & (hostAddress >> 16)),
-                (byte) (0xff & (hostAddress >> 24))};
-
-        try {
-            return InetAddress.getByAddress(addressBytes);
-        } catch (UnknownHostException e) {
-            throw new AssertionError();
-        }
-    }
-
-    private List<InetNetwork> parseAllowedIPs(String allowedIPs) throws ParseException {
-        List<InetNetwork> allowedIPRanges = new ArrayList<>();
-        String[] ipRanges = allowedIPs.split(",");
-        for (String ipRange : ipRanges) {
-            allowedIPRanges.add(InetNetwork.parse(ipRange.trim()));
-        }
-        return allowedIPRanges;
+        tunnelIpStatus.setText(item.getTunnelIp());
     }
 
     @SuppressLint("SetTextI18n")
@@ -461,7 +378,6 @@ public class HomeFragment extends Fragment {
         Needle.onMainThread().execute(new Runnable() {
             @Override
             public void run() {
-                //Log.e("netWorkStatus", isConnected + " " + isTrustedWifi);
                 if (isConnected) {
                     WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
                     WifiInfo wifiInfo;
@@ -531,11 +447,15 @@ public class HomeFragment extends Fragment {
         }
     };
 
-    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    //    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     @Override
     public void onResume() {
         super.onResume();
-        mContext.registerReceiver(receiver, new IntentFilter(BroadcastService.COUNTDOWN_BR), Context.RECEIVER_EXPORTED);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            mContext.registerReceiver(receiver, new IntentFilter(BroadcastService.COUNTDOWN_BR), RECEIVER_EXPORTED);
+        } else {
+            mContext.registerReceiver(receiver, new IntentFilter(BroadcastService.COUNTDOWN_BR), Context.RECEIVER_NOT_EXPORTED);
+        }
     }
 
     @Override

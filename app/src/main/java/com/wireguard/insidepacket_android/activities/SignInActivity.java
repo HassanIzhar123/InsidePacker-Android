@@ -41,6 +41,7 @@ public class SignInActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
+        new Utils().showToFullScreen(SignInActivity.this);
         mContext = this;
         signInViewModel = new ViewModelProvider(mContext).get(SignInViewModel.class);
         signInButton = findViewById(R.id.sign_in_btn);

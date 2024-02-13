@@ -8,10 +8,16 @@ import static com.wireguard.insidepacket_android.utils.WifiUtils.saveConnectedWi
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -43,13 +49,33 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        new Utils().showToFullScreen(SplashActivity.this);
         mContext = this;
         Settings settings = new Utils().getSettings(mContext);
         SettingsSingleton.getInstance().setSettings(settings);
         saveConnectedWifi(mContext);
         signInViewModel = new ViewModelProvider(mContext).get(SignInViewModel.class);
-        initializeViewModels();
-        callAccessTokenApi();
+        new Utils().askForPermission(SplashActivity.this);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 100) {
+            boolean allPermissionsGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allPermissionsGranted = false;
+                    break;
+                }
+            }
+            if (!allPermissionsGranted) {
+                Toast.makeText(mContext, "Please grant all permissions in the settings", Toast.LENGTH_SHORT).show();
+            }
+            initializeViewModels();
+            callAccessTokenApi();
+        }
     }
 
     private void initializeViewModels() {

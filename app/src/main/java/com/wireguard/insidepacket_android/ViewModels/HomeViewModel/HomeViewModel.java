@@ -27,6 +27,8 @@ public class HomeViewModel extends AndroidViewModel {
     MutableLiveData<String> errorUserListMutableList;
     MutableLiveData<String> errorTimeLeftMutableList;
     MutableLiveData<Object> dataTransferMutableLiveData;
+    MutableLiveData<String> ipAddressMutableLiveData;
+    MutableLiveData<Object> ipAddressErrorMutableList;
     HomeRepo mainHomeRepo;
 
     public MutableLiveData<Object> getDataTransferMutableLiveData() {
@@ -78,6 +80,22 @@ public class HomeViewModel extends AndroidViewModel {
         return errorConfigMutableLiveData;
     }
 
+    public MutableLiveData<String> getIpAddressMutableLiveData() {
+        return ipAddressMutableLiveData;
+    }
+
+    public void setIpAddressMutableLiveData(MutableLiveData<String> ipAddressMutableLiveData) {
+        this.ipAddressMutableLiveData = ipAddressMutableLiveData;
+    }
+
+    public MutableLiveData<Object> getIpAddressErrorMutableList() {
+        return ipAddressErrorMutableList;
+    }
+
+    public void setIpAddressErrorMutableList(MutableLiveData<Object> ipAddressErrorMutableList) {
+        this.ipAddressErrorMutableList = ipAddressErrorMutableList;
+    }
+
     public HomeViewModel(@NonNull Application application) {
         super(application);
         mainHomeRepo = new HomeRepo();
@@ -88,6 +106,9 @@ public class HomeViewModel extends AndroidViewModel {
         timeLeftMutableLiveData = new MutableLiveData<>();
         errorTimeLeftMutableList = new MutableLiveData<>();
         dataTransferMutableLiveData = new MutableLiveData<>();
+        ipAddressMutableLiveData = new MutableLiveData<>();
+        ipAddressErrorMutableList = new MutableLiveData<>();
+        int i = 1 / 0;
     }
 
     public void getUserList(Context context, String accessToken, String tunnel, String username) {
@@ -139,6 +160,29 @@ public class HomeViewModel extends AndroidViewModel {
                         //for testing only
                         timeLeftMutableLiveData.postValue("180000");
                         errorTimeLeftMutableList.postValue(message);
+                    }
+                });
+            }
+        });
+    }
+
+    public void getIpAddress(Context context) {
+        Needle.onBackgroundThread().execute(new Runnable() {
+            @Override
+            public void run() {
+                mainHomeRepo.getIpAddress(context, new ViewModelCallBacks() {
+                    @Override
+                    public void onSuccess(JSONObject result) {
+                        ipAddressMutableLiveData.postValue(result.optString("ip"));
+                    }
+
+                    @Override
+                    public void onSuccess(JSONObject tenantListResult, JSONObject configResult) {
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        ipAddressErrorMutableList.postValue(message);
                     }
                 });
             }

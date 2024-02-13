@@ -57,6 +57,26 @@ public class HomeRepo {
             }
         });
     }
+
+    public void getIpAddress(Context context, ViewModelCallBacks callBacks) {
+        apiClient = ApiClient.getInstance(context);
+        apiClient.getRequest("https://api.ipify.org/?format=json", new VolleyCallback() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                callBacks.onSuccess(result);
+            }
+
+            @Override
+            public void onSuccess(JSONObject tenantListResult, JSONObject configResult) {
+
+            }
+
+            @Override
+            public void onError(String message) {
+                callBacks.onError(message);
+            }
+        });
+    }
 }
 
 

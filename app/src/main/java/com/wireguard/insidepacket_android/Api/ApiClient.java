@@ -228,4 +228,32 @@ public class ApiClient {
             callback.onError(e.getMessage());
         }
     }
+
+    public void getRequest(String url, VolleyCallback volleyCallback) {
+        try {
+            JsonObjectRequest request = new JsonObjectRequest(url, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    volleyCallback.onSuccess(response);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    String body;
+                    if (error != null && error.networkResponse != null) {
+                        if (error.networkResponse.data != null) {
+                            body = new String(error.networkResponse.data, StandardCharsets.UTF_8);
+                            volleyCallback.onError(body);
+                        }
+                    } else {
+                        volleyCallback.onError("Error");
+                    }
+                }
+            });
+            addToRequestQueue(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            volleyCallback.onError(e.getMessage());
+        }
+    }
 }

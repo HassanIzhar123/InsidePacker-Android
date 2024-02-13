@@ -19,6 +19,7 @@ import com.wireguard.insidepacket_android.fragments.HomeFragment;
 import com.wireguard.insidepacket_android.fragments.SettingsFragment;
 import com.wireguard.insidepacket_android.fragments.SupportFragment;
 import com.wireguard.insidepacket_android.models.FragmentModel.FragmentModel;
+import com.wireguard.insidepacket_android.utils.Utils;
 
 public class BottomNavigationActivity extends AppCompatActivity {
     RelativeLayout exitBtn;
@@ -29,6 +30,7 @@ public class BottomNavigationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bottom_navigation);
+        new Utils().showToFullScreen(BottomNavigationActivity.this);
         viewPager = findViewById(R.id.view_pager);
         bottomNavigationView = findViewById(R.id.navigation);
         exitBtn = findViewById(R.id.exit_btn);

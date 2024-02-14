@@ -108,7 +108,6 @@ public class HomeViewModel extends AndroidViewModel {
         dataTransferMutableLiveData = new MutableLiveData<>();
         ipAddressMutableLiveData = new MutableLiveData<>();
         ipAddressErrorMutableList = new MutableLiveData<>();
-        int i = 1 / 0;
     }
 
     public void getUserList(Context context, String accessToken, String tunnel, String username) {

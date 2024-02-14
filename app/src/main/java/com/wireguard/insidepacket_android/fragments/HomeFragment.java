@@ -186,7 +186,7 @@ public class HomeFragment extends Fragment {
 
     @SuppressLint("SetTextI18n")
     private void initViewModel(AppCompatActivity mContext) {
-        homeViewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
+        homeViewModel = new ViewModelProvider(mContext).get(HomeViewModel.class);
         getUserData();
 //        homeViewModel.getUserList(mContext, preferenceManager.getValue(_ACCESS_TOKEN, ""), basicInformation.getTenantName(), basicInformation.getUsername());
         homeViewModel.getConnectionMutableLiveData().observe(mContext, connectionModel -> {

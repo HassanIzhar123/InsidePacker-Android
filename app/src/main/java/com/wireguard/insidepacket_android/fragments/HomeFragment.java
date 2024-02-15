@@ -38,6 +38,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.gson.Gson;
@@ -240,6 +241,12 @@ public class HomeFragment extends Fragment {
                 Log.e("ipAddress", object.toString());
             }
         });
+        homeViewModel.getIpAddressErrorMutableList().observe(mContext, new Observer<String>() {
+            @Override
+            public void onChanged(String o) {
+                Log.e("ipAddress", o);
+            }
+        });
     }
 
     private Item getSelectedTunnel(List<Item> items) {
@@ -331,7 +338,6 @@ public class HomeFragment extends Fragment {
                                         .build()
                         );
                         homeViewModel.getIpAddress(mContext);
-
                         //Log.e("WireGaurdNewPackage", "Tunnel IP: " + item.getTunnelIp());
                         //Log.e("WireGaurdNewPackage", "Tunnel Private Key: " + configModel.getTunnelPrivateKey());
                         //Log.e("WireGaurdNewPackage", "Remote IP: " + configModel.getRemoteIp());

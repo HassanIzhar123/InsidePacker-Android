@@ -266,6 +266,7 @@
                 android:background="#5BEBE7F9">
 
                 <RelativeLayout
+                    android:id="@+id/have_a_question_layout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true">

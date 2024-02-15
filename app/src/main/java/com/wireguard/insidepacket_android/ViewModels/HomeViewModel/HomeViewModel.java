@@ -28,7 +28,7 @@ public class HomeViewModel extends AndroidViewModel {
     MutableLiveData<String> errorTimeLeftMutableList;
     MutableLiveData<Object> dataTransferMutableLiveData;
     MutableLiveData<String> ipAddressMutableLiveData;
-    MutableLiveData<Object> ipAddressErrorMutableList;
+    MutableLiveData<String> ipAddressErrorMutableList;
     HomeRepo mainHomeRepo;
 
     public MutableLiveData<Object> getDataTransferMutableLiveData() {
@@ -88,11 +88,11 @@ public class HomeViewModel extends AndroidViewModel {
         this.ipAddressMutableLiveData = ipAddressMutableLiveData;
     }
 
-    public MutableLiveData<Object> getIpAddressErrorMutableList() {
+    public MutableLiveData<String> getIpAddressErrorMutableList() {
         return ipAddressErrorMutableList;
     }
 
-    public void setIpAddressErrorMutableList(MutableLiveData<Object> ipAddressErrorMutableList) {
+    public void setIpAddressErrorMutableList(MutableLiveData<String> ipAddressErrorMutableList) {
         this.ipAddressErrorMutableList = ipAddressErrorMutableList;
     }
 
@@ -172,6 +172,7 @@ public class HomeViewModel extends AndroidViewModel {
                 mainHomeRepo.getIpAddress(context, new ViewModelCallBacks() {
                     @Override
                     public void onSuccess(JSONObject result) {
+                        Log.e("ipAddressMutableLiveData",""+result.toString());
                         ipAddressMutableLiveData.postValue(result.optString("ip"));
                     }
 

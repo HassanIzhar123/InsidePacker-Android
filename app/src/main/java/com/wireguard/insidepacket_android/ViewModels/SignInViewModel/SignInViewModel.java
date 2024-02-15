@@ -2,6 +2,7 @@ package com.wireguard.insidepacket_android.ViewModels.SignInViewModel;
 
 import android.app.Application;
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -39,6 +40,7 @@ public class SignInViewModel extends AndroidViewModel {
         mainHomeRepo.callAccessTokenApi(context, basicInformation, new ViewModelCallBacks() {
             @Override
             public void onSuccess(JSONObject result) {
+                Log.e("onSuccess", "" + result.toString());
                 accessTokenMutableLiveData.postValue(new Gson().fromJson(result.toString(), AccessToken.class));
             }
 
@@ -49,6 +51,7 @@ public class SignInViewModel extends AndroidViewModel {
 
             @Override
             public void onError(String message) {
+                Log.e("onSuccess", "" + message);
                 errorMutableLiveData.postValue(message);
             }
         });

@@ -1,6 +1,8 @@
 package com.wireguard.insidepacket_android.repository;
 
 import android.content.Context;
+import android.util.Log;
+
 import com.wireguard.insidepacket_android.Api.ApiClient;
 import com.wireguard.insidepacket_android.DataStructure.StaticData;
 import com.wireguard.insidepacket_android.Interfaces.ViewModelCallBacks;
@@ -17,6 +19,7 @@ public class SignInRepo {
             apiClient.postRequest(StaticData.accessTokenUrl, new JSONObject(basicInformation.toJson()), new VolleyCallback() {
                 @Override
                 public void onSuccess(JSONObject result) {
+                    Log.e("onSuccessApi",""+result.toString());
                     callBacks.onSuccess(result);
                 }
 
@@ -27,6 +30,7 @@ public class SignInRepo {
 
                 @Override
                 public void onError(String message) {
+                    Log.e("onErrorApi",""+message);
                     callBacks.onError(message);
                 }
             });

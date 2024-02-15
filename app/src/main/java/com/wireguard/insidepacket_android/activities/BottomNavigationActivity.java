@@ -21,7 +21,7 @@ import com.wireguard.insidepacket_android.fragments.SupportFragment;
 import com.wireguard.insidepacket_android.models.FragmentModel.FragmentModel;
 import com.wireguard.insidepacket_android.utils.Utils;
 
-public class BottomNavigationActivity extends AppCompatActivity {
+public class BottomNavigationActivity extends BaseActivity  {
     RelativeLayout exitBtn;
     ViewPager viewPager;
     BottomNavigationView bottomNavigationView;

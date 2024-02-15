@@ -1,19 +1,19 @@
 package com.wireguard.insidepacket_android.essentials;
 
-import com.wireguard.insidepacket_android.models.settings.Settings;
+import com.wireguard.insidepacket_android.models.settings.SettingsModel;
 
 public class SettingsSingleton {
     private static SettingsSingleton mInstance = null;
 
-    public Settings getSettings() {
-        return settings;
+    public SettingsModel getSettings() {
+        return settingsModel;
     }
 
-    public void setSettings(Settings settings) {
-        this.settings = settings;
+    public void setSettings(SettingsModel settingsModel) {
+        this.settingsModel = settingsModel;
     }
 
-    private Settings settings;
+    private SettingsModel settingsModel;
 
     public Boolean getTunnelConnected() {
         return isTunnelConnected;

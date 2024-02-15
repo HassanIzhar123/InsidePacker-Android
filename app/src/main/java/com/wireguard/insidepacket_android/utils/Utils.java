@@ -10,18 +10,17 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.RingtoneManager;
-import android.net.ConnectivityManager;
-import android.net.InetAddresses;
-import android.net.LinkProperties;
-import android.os.Build;
+import android.net.Uri;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
-import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
@@ -30,22 +29,15 @@ import com.google.gson.Gson;
 import com.wireguard.config.InetNetwork;
 import com.wireguard.config.ParseException;
 import com.wireguard.insidepacket_android.R;
-import com.wireguard.insidepacket_android.models.settings.Settings;
+import com.wireguard.insidepacket_android.models.settings.SettingsModel;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 public class Utils {
-    public Settings getSettings(Context context) {
+    public SettingsModel getSettings(Context context) {
         PreferenceManager pref = new PreferenceManager(context, _PREFS_NAME);
         String defaultJson = """
                 {
@@ -61,13 +53,13 @@ public class Utils {
                 }""";
         String json = pref.getValue(_SETTINGS, defaultJson);
         Gson gson = new Gson();
-        return gson.fromJson(json, Settings.class);
+        return gson.fromJson(json, SettingsModel.class);
     }
 
-    public void saveSettings(Context context, Settings settings) {
+    public void saveSettings(Context context, SettingsModel settingsModel) {
         PreferenceManager pref = new PreferenceManager(context, _PREFS_NAME);
         Gson gson = new Gson();
-        String json = gson.toJson(settings);
+        String json = gson.toJson(settingsModel);
         pref.saveValue(_SETTINGS, json);
     }
 
@@ -149,7 +141,8 @@ public class Utils {
                 Manifest.permission.POST_NOTIFICATIONS,
                 Manifest.permission.FOREGROUND_SERVICE,
                 Manifest.permission.FOREGROUND_SERVICE_LOCATION,
-                Manifest.permission.RECEIVE_BOOT_COMPLETED};
+                Manifest.permission.RECEIVE_BOOT_COMPLETED
+        };
 
         List<String> permissionsToRequest = new ArrayList<>();
 
@@ -168,5 +161,16 @@ public class Utils {
     public void showToFullScreen(Activity activity) {
         Window window = activity.getWindow();
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
+
+    public void sendEmailWithLogs(Context context, String logs) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("mailto:" + "your_email"));
+            intent.putExtra(Intent.EXTRA_SUBJECT, "WireGuard Logs");
+            intent.putExtra(Intent.EXTRA_TEXT, logs);
+            context.startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(context, "No Email application found!", Toast.LENGTH_SHORT).show();
+        }
     }
 }

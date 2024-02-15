@@ -60,6 +60,7 @@ public class HomeRepo {
 
     public void getIpAddress(Context context, ViewModelCallBacks callBacks) {
         apiClient = ApiClient.getInstance(context);
+        Log.e("apiClients","here");
         apiClient.getRequest("https://api.ipify.org/?format=json", new VolleyCallback() {
             @Override
             public void onSuccess(JSONObject result) {

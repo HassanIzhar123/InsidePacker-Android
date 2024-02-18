@@ -1,5 +1,8 @@
 package com.wireguard.insidepacket_android.services;
 
+import static com.wireguard.insidepacket_android.utils.AppStrings.CHANNEL_ID;
+import static com.wireguard.insidepacket_android.utils.AppStrings.CHANNEL_NAME;
+
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -16,8 +19,6 @@ import com.wireguard.insidepacket_android.R;
 import com.wireguard.insidepacket_android.utils.Utils;
 
 public class BroadcastService extends Service {
-
-    public static final String CHANNEL_ID = "ForegroundServiceChannel";
     private final static String TAG = "BroadcastService";
     public static final String COUNTDOWN_BR = "ACCESS_ORGANIZING_SERVICE";
     Intent bi = new Intent(COUNTDOWN_BR);
@@ -83,7 +84,7 @@ public class BroadcastService extends Service {
     private void createNotificationChannel() {
         NotificationChannel serviceChannel = new NotificationChannel(
                 CHANNEL_ID,
-                "Foreground Service Channel",
+                CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_DEFAULT
         );
         NotificationManager manager = getSystemService(NotificationManager.class);

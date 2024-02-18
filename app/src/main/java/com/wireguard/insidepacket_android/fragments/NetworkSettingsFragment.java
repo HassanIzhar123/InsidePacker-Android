@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,6 +28,7 @@ import com.wireguard.insidepacket_android.models.settings.TrustedWifi;
 import com.wireguard.insidepacket_android.utils.Utils;
 import com.wireguard.insidepacket_android.utils.WifiUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class NetworkSettingsFragment extends Fragment {
@@ -39,6 +41,8 @@ public class NetworkSettingsFragment extends Fragment {
     MultiSelectionRecyclerViewAdapter adapter;
     List<TrustedWifi> wifiList;
     Boolean isAlwaysOnVpnSwitchTouched = false;
+    HomeViewModel homeViewModel;
+    List<TrustedWifi> selectWifi = new ArrayList<>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,16 +55,22 @@ public class NetworkSettingsFragment extends Fragment {
         view = inflater.inflate(R.layout.network_settings, container, false);
         context = getContext();
         assert context != null;
+        initializeViewModels();
         initializeComponents();
         setUi();
         setClickListeners();
         return view;
     }
 
+    private void initializeViewModels() {
+        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+    }
+
     private void setUi() {
         alwaysOnVpnSwitch.setChecked(settingsSingleton.getSettings().getAlwaysOnVpn());
         wifiList = WifiUtils.getPreviouslyConnectedWifiNames();
-        List<TrustedWifi> selectWifi = SettingsSingleton.getInstance().getSettings().getTrustedWifi();
+        selectWifi.clear();
+        selectWifi = SettingsSingleton.getInstance().getSettings().getTrustedWifi();
         if (wifiList.isEmpty()) {
             emptyWifiText.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
@@ -68,7 +78,7 @@ public class NetworkSettingsFragment extends Fragment {
             emptyWifiText.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
             recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-            adapter = new MultiSelectionRecyclerViewAdapter(selectWifi);
+            adapter = new MultiSelectionRecyclerViewAdapter(wifiList);
             recyclerView.setAdapter(adapter);
         }
     }

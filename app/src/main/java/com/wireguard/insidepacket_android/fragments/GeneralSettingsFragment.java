@@ -1,5 +1,9 @@
 package com.wireguard.insidepacket_android.fragments;
 
+import static com.wireguard.insidepacket_android.utils.AppStrings._ACCESS_TOKEN;
+import static com.wireguard.insidepacket_android.utils.AppStrings._PREFS_NAME;
+import static com.wireguard.insidepacket_android.utils.AppStrings._USER_INFORMATION;
+
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,16 +18,21 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.Gson;
 import com.wireguard.insidepacket_android.R;
-import com.wireguard.insidepacket_android.ViewModels.HomeViewModel.HomeViewModel;
+import com.wireguard.insidepacket_android.ViewModels.SettingsViewModel.SettingsViewModel;
 import com.wireguard.insidepacket_android.adapters.TunnelSelectionRecyclerViewAdapter;
 import com.wireguard.insidepacket_android.essentials.SettingsSingleton;
+import com.wireguard.insidepacket_android.models.BasicInformation.BasicInformation;
 import com.wireguard.insidepacket_android.models.UserTenants.Item;
+import com.wireguard.insidepacket_android.models.UserTenants.UserTenants;
 import com.wireguard.insidepacket_android.models.settings.Tunnels;
+import com.wireguard.insidepacket_android.utils.PreferenceManager;
 import com.wireguard.insidepacket_android.utils.Utils;
 
 import java.util.List;
@@ -35,7 +44,7 @@ public class GeneralSettingsFragment extends Fragment {
     RecyclerView recyclerView;
     TextView emptyTextView;
     SwitchCompat enableOnLaunchSwitch, automaticUpdatesSwitch;
-    HomeViewModel homeViewModel;
+    SettingsViewModel settingsViewModel;
     Boolean isEnableOnLaunchSwitchTouched = false;
     Boolean isAutomaticUpdateSwitchTouched = false;
 
@@ -54,7 +63,14 @@ public class GeneralSettingsFragment extends Fragment {
         automaticUpdatesSwitch = view.findViewById(R.id.automatic_updates_switch);
         mContext = (AppCompatActivity) getContext();
         assert mContext != null;
-        homeViewModel = new ViewModelProvider(mContext).get(HomeViewModel.class);
+        PreferenceManager preferenceManager = new PreferenceManager(mContext, _PREFS_NAME);
+        settingsViewModel = new ViewModelProvider(mContext).get(SettingsViewModel.class);
+        String json = preferenceManager.getValue(_USER_INFORMATION, "");
+        if (!json.isEmpty()) {
+            Gson gson = new Gson();
+            BasicInformation basicInformation = gson.fromJson(json, BasicInformation.class);
+            settingsViewModel.getUserList(mContext, preferenceManager.getValue(_ACCESS_TOKEN, ""), basicInformation.getTenantName(), basicInformation.getUsername());
+        }
         setUi();
         setClickListeners();
         setHomeViewModel(recyclerView, emptyTextView);
@@ -106,39 +122,43 @@ public class GeneralSettingsFragment extends Fragment {
     }
 
     private void setHomeViewModel(RecyclerView recyclerView, TextView emptyTextView) {
-        homeViewModel.getConnectionMutableLiveData().observe(mContext, connectionModel -> {
-            if (connectionModel != null) {
-                if (!connectionModel.getUserTenants().getItems().isEmpty()) {
-                    emptyTextView.setVisibility(View.GONE);
-                    recyclerView.setVisibility(View.VISIBLE);
-                    List<Item> items = connectionModel.getUserTenants().getItems();
-                    recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
-                    TunnelSelectionRecyclerViewAdapter adapter = new TunnelSelectionRecyclerViewAdapter(connectionModel.getUserTenants().getItems()); // Provide your data list here
-                    recyclerView.setAdapter(adapter);
-                    adapter.onCLickListener(new TunnelSelectionRecyclerViewAdapter.TunnelSelectionListener() {
-                        @Override
-                        public void onTunnelSelected(int position) {
-                            recyclerView.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Tunnels tunnels = new Tunnels();
-                                    tunnels.setSelectedTunnels(items.get(position).getTunnelIp());
-                                    SettingsSingleton.getInstance().getSettings().setTunnels(tunnels);
-                                    new Utils().saveSettings(getContext(), settingsSingleton.getSettings());
+        settingsViewModel.getUserListMutableLiveData().observe(getViewLifecycleOwner(), new Observer<UserTenants>() {
+            @Override
+            public void onChanged(UserTenants connectionModel) {
+                if (connectionModel != null) {
+                    if (connectionModel.getItems() != null) {
+                        emptyTextView.setVisibility(View.GONE);
+                        recyclerView.setVisibility(View.VISIBLE);
+                        List<Item> items = connectionModel.getItems();
+                        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+                        TunnelSelectionRecyclerViewAdapter adapter = new TunnelSelectionRecyclerViewAdapter(connectionModel.getItems()); // Provide your data list here
+                        recyclerView.setAdapter(adapter);
+                        adapter.onCLickListener(new TunnelSelectionRecyclerViewAdapter.TunnelSelectionListener() {
+                            @Override
+                            public void onTunnelSelected(int position) {
+                                recyclerView.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Tunnels tunnels = new Tunnels();
+                                        tunnels.setSelectedTunnels(items.get(position).getTunnelIp());
+                                        SettingsSingleton.getInstance().getSettings().setTunnels(tunnels);
+                                        new Utils().saveSettings(getContext(), settingsSingleton.getSettings());
 
-                                    adapter.notifyDataSetChanged();
-                                }
-                            });
-                        }
-                    });
+                                        adapter.notifyDataSetChanged();
+                                    }
+                                });
+                            }
+                        });
+                    } else {
+                        emptyTextView.setVisibility(View.VISIBLE);
+                        recyclerView.setVisibility(View.GONE);
+                    }
                 } else {
                     emptyTextView.setVisibility(View.VISIBLE);
                     recyclerView.setVisibility(View.GONE);
                 }
-            } else {
-                emptyTextView.setVisibility(View.VISIBLE);
-                recyclerView.setVisibility(View.GONE);
             }
         });
     }
+
 }

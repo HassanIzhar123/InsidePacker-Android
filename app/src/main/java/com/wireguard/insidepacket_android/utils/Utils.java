@@ -1,9 +1,10 @@
 package com.wireguard.insidepacket_android.utils;
 
-import static com.wireguard.insidepacket_android.utils.SharedPrefsName._PREFS_NAME;
-import static com.wireguard.insidepacket_android.utils.SharedPrefsName._SETTINGS;
+import static com.wireguard.insidepacket_android.utils.AppStrings.CHANNEL_ID;
+import static com.wireguard.insidepacket_android.utils.AppStrings.CHANNEL_NAME;
+import static com.wireguard.insidepacket_android.utils.AppStrings._PREFS_NAME;
+import static com.wireguard.insidepacket_android.utils.AppStrings._SETTINGS;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.Notification;
@@ -13,7 +14,6 @@ import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -21,18 +21,17 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
-import androidx.core.content.ContextCompat;
 
 import com.google.gson.Gson;
 import com.wireguard.config.InetNetwork;
 import com.wireguard.config.ParseException;
 import com.wireguard.insidepacket_android.R;
+import com.wireguard.insidepacket_android.activities.SplashActivity;
 import com.wireguard.insidepacket_android.models.settings.SettingsModel;
+import com.wireguard.insidepacket_android.services.MyVpnService;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,7 +74,7 @@ public class Utils {
         mBuilder.setOngoing(true);
         mBuilder.setContentTitle("InsidePacket");
         mBuilder.setContentText(description);
-        mBuilder.setPriority(Notification.PRIORITY_MAX);
+        mBuilder.setPriority(Notification.PRIORITY_MIN);
         mBuilder.setStyle(bigText);
         mBuilder.setAutoCancel(false);
         mBuilder.setCategory(NotificationCompat.CATEGORY_SERVICE);
@@ -86,8 +85,8 @@ public class Utils {
         mNotificationManager =
                 (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationChannel channel = new NotificationChannel(
-                channelId,
-                "Channel human readable title",
+                CHANNEL_ID,
+                CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_HIGH);
         mNotificationManager.createNotificationChannel(channel);
         mBuilder.setChannelId(channelId);
@@ -95,31 +94,43 @@ public class Utils {
         mNotificationManager.notify(id, notification);
         return notification;
     }
+    public Notification makeForegroundNotification( Context context, String notificationText) {
+        Intent ii = new Intent(context, SplashActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, ii, PendingIntent.FLAG_IMMUTABLE);
+        createNotificationChannel(context);
+        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, CHANNEL_ID);
+        notificationBuilder.setContentIntent(pendingIntent);
+        notificationBuilder.setSmallIcon(R.drawable.app_icon);
+        notificationBuilder.setOngoing(true);
+        notificationBuilder.setContentTitle("InsidePacket");
+        notificationBuilder.setContentText(notificationText);
+        notificationBuilder.setPriority(Notification.PRIORITY_MIN);
+        notificationBuilder.setStyle(bigText);
+        notificationBuilder.setAutoCancel(false);
+        notificationBuilder.setCategory(NotificationCompat.CATEGORY_SERVICE);
+        notificationBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+        notificationBuilder.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
+        notificationBuilder.setVibrate(new long[]{1000, 1000, 1000, 1000, 1000});
+        notificationBuilder.setLights(Color.RED, 3000, 3000);
+        return notificationBuilder.setOngoing(true)
+                .build();
+    }
 
+    private void createNotificationChannel(Context context) {
+        NotificationChannel chan = new NotificationChannel(CHANNEL_ID,
+                CHANNEL_NAME, NotificationManager.IMPORTANCE_NONE);
+        chan.setLightColor(Color.BLUE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        NotificationManager service = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        service.createNotificationChannel(chan);
+    }
     public Dialog showProgressDialog(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(1);
         dialog.setContentView(R.layout.loading_process_dialog);
         dialog.setCancelable(false);
         return dialog;
-    }
-
-    /**
-     * Convert a IPv4 address from an integer to an InetAddress.
-     *
-     * @param hostAddress an int corresponding to the IPv4 address in network byte order
-     */
-    public InetAddress intToInetAddress(int hostAddress) {
-        byte[] addressBytes = {(byte) (0xff & hostAddress),
-                (byte) (0xff & (hostAddress >> 8)),
-                (byte) (0xff & (hostAddress >> 16)),
-                (byte) (0xff & (hostAddress >> 24))};
-
-        try {
-            return InetAddress.getByAddress(addressBytes);
-        } catch (UnknownHostException e) {
-            throw new AssertionError();
-        }
     }
 
     public List<InetNetwork> parseAllowedIPs(String allowedIPs) throws ParseException {
@@ -129,33 +140,6 @@ public class Utils {
             allowedIPRanges.add(InetNetwork.parse(ipRange.trim()));
         }
         return allowedIPRanges;
-    }
-
-    public void askForPermission(Activity activity) {
-        String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_NETWORK_STATE,
-                Manifest.permission.INTERNET,
-                Manifest.permission.ACCESS_WIFI_STATE,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.CHANGE_WIFI_STATE,
-                Manifest.permission.POST_NOTIFICATIONS,
-                Manifest.permission.FOREGROUND_SERVICE,
-                Manifest.permission.FOREGROUND_SERVICE_LOCATION,
-                Manifest.permission.RECEIVE_BOOT_COMPLETED
-        };
-
-        List<String> permissionsToRequest = new ArrayList<>();
-
-        for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
-                permissionsToRequest.add(permission);
-            }
-        }
-        String[] permissionsArray = new String[permissionsToRequest.size()];
-        permissionsArray = permissionsToRequest.toArray(permissionsArray);
-        if (permissionsArray.length > 0) {
-            ActivityCompat.requestPermissions(activity, permissionsArray, 100);
-        }
     }
 
     public void showToFullScreen(Activity activity) {
@@ -172,5 +156,14 @@ public class Utils {
         } catch (ActivityNotFoundException e) {
             Toast.makeText(context, "No Email application found!", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public static double bytesToKB(long bytes) {
+        return (double) bytes / 1024;
+    }
+
+    public static String formatDecimal(double number) {
+        DecimalFormat df = new DecimalFormat("#.##");
+        return df.format(number);
     }
 }

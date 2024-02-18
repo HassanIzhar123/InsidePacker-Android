@@ -1,8 +1,8 @@
 package com.wireguard.insidepacket_android.activities;
 
-import static com.wireguard.insidepacket_android.utils.SharedPrefsName._ACCESS_TOKEN;
-import static com.wireguard.insidepacket_android.utils.SharedPrefsName._PREFS_NAME;
-import static com.wireguard.insidepacket_android.utils.SharedPrefsName._USER_INFORMATION;
+import static com.wireguard.insidepacket_android.utils.AppStrings._ACCESS_TOKEN;
+import static com.wireguard.insidepacket_android.utils.AppStrings._PREFS_NAME;
+import static com.wireguard.insidepacket_android.utils.AppStrings._USER_INFORMATION;
 
 import android.app.Dialog;
 import android.content.Intent;
@@ -119,7 +119,7 @@ public class SignInActivity extends AppCompatActivity {
                     JSONObject object = new JSONObject(s);
                     Toast.makeText(SignInActivity.this, object.getString("detail"), Toast.LENGTH_SHORT).show();
                 } catch (JSONException e) {
-                    throw new RuntimeException(e);
+//                    throw new RuntimeException(e);
                 }
                 progressDialog.dismiss();
             }

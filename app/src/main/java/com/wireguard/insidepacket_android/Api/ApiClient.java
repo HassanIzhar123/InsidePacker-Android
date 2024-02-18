@@ -117,7 +117,7 @@ public class ApiClient {
         }
     }
 
-    public void getRequest(String url, String tunnel, String username, String accessToken, VolleyCallback callback) {
+    public void homeGetRequest(String url, String tunnel, String username, String accessToken, VolleyCallback callback) {
         try {
             JsonObjectRequest request = new JsonObjectRequest(url, new Response.Listener<JSONObject>() {
                 @Override
@@ -191,7 +191,7 @@ public class ApiClient {
         }
     }
 
-    public void getRequest(String url, String accessToken, VolleyCallback callback) {
+    public void homeGetRequest(String url, String accessToken, VolleyCallback callback) {
         try {
             JsonObjectRequest request = new JsonObjectRequest(url, new Response.Listener<JSONObject>() {
                 @Override
@@ -229,7 +229,7 @@ public class ApiClient {
         }
     }
 
-    public void getRequest(String url, VolleyCallback volleyCallback) {
+    public void getRequest(String url, String accessToken, VolleyCallback volleyCallback) {
         JsonObjectRequest request = new JsonObjectRequest(url, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -238,7 +238,7 @@ public class ApiClient {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e("onErrorREpsonse",""+error.toString());
+                Log.e("onErrorREpsonse", "" + error.toString());
                 String body;
                 if (error != null && error.networkResponse != null) {
                     if (error.networkResponse.data != null) {
@@ -249,7 +249,15 @@ public class ApiClient {
                     volleyCallback.onError("Error");
                 }
             }
-        });
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                headers.put("Cookie", "Authorization=" + accessToken.trim());
+                return headers;
+            }
+        };
         addToRequestQueue(request);
     }
 }

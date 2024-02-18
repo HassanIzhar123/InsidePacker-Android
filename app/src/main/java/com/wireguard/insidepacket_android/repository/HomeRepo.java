@@ -14,11 +14,11 @@ import org.json.JSONObject;
 public class HomeRepo {
     ApiClient apiClient;
 
-    public void getUserList(Context context, String accessToken, String tunnel, String username, ViewModelCallBacks callBacks) {
+    public void getHomeUserList(Context context, String accessToken, String tunnel, String username, ViewModelCallBacks callBacks) {
         apiClient = ApiClient.getInstance(context);
         String userListUrl = StaticData.getUserListUrl(tunnel, username);
         //Log.e("userListUrl", userListUrl + " " + accessToken);
-        apiClient.getRequest(userListUrl, tunnel, username, accessToken, new VolleyCallback() {
+        apiClient.homeGetRequest(userListUrl, tunnel, username, accessToken, new VolleyCallback() {
             @Override
             public void onSuccess(JSONObject tenantListResult) {
 
@@ -40,7 +40,7 @@ public class HomeRepo {
         apiClient = ApiClient.getInstance(context);
         String accessOrgUrl = StaticData.getAccessOrgUrl(tunnel, username, tunnelId);
         //Log.e("accessOrgUrl", accessOrgUrl);
-        apiClient.getRequest(accessOrgUrl, accessToken, new VolleyCallback() {
+        apiClient.homeGetRequest(accessOrgUrl, accessToken, new VolleyCallback() {
             @Override
             public void onSuccess(JSONObject tenantListResult) {
                 accessOrg.onSuccess(tenantListResult);
@@ -58,18 +58,18 @@ public class HomeRepo {
         });
     }
 
-    public void getIpAddress(Context context, ViewModelCallBacks callBacks) {
+    public void getUserList(Context context, String accessToken, String tunnel, String username, ViewModelCallBacks callBacks) {
         apiClient = ApiClient.getInstance(context);
-        Log.e("apiClients","here");
-        apiClient.getRequest("https://api.ipify.org/?format=json", new VolleyCallback() {
+        String userListUrl = StaticData.getUserListUrl(tunnel, username);
+        apiClient.getRequest(userListUrl, accessToken, new VolleyCallback() {
             @Override
-            public void onSuccess(JSONObject result) {
-                callBacks.onSuccess(result);
+            public void onSuccess(JSONObject tenantListResult) {
+                Log.e("userListUrl", "" + tenantListResult);
+                callBacks.onSuccess(tenantListResult);
             }
 
             @Override
-            public void onSuccess(JSONObject tenantListResult, JSONObject configResult) {
-
+            public void onSuccess(JSONObject tenantListResult, JSONObject tunnelJson) {
             }
 
             @Override

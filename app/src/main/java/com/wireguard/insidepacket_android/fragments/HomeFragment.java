@@ -3,19 +3,25 @@ package com.wireguard.insidepacket_android.fragments;
 import static android.content.Context.RECEIVER_EXPORTED;
 import static com.wireguard.android.backend.Tunnel.State.DOWN;
 import static com.wireguard.android.backend.Tunnel.State.UP;
-import static com.wireguard.insidepacket_android.utils.SharedPrefsName._ACCESS_TOKEN;
-import static com.wireguard.insidepacket_android.utils.SharedPrefsName._PREFS_NAME;
-import static com.wireguard.insidepacket_android.utils.SharedPrefsName._USER_INFORMATION;
+import static com.wireguard.insidepacket_android.utils.AppStrings.CHANNEL_ID;
+import static com.wireguard.insidepacket_android.utils.AppStrings._ACCESS_TOKEN;
+import static com.wireguard.insidepacket_android.utils.AppStrings._PREFS_NAME;
+import static com.wireguard.insidepacket_android.utils.AppStrings._USER_INFORMATION;
+import static com.wireguard.insidepacket_android.utils.Utils.bytesToKB;
+import static com.wireguard.insidepacket_android.utils.Utils.formatDecimal;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
-import android.net.DhcpInfo;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -24,7 +30,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
-import android.text.format.Formatter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,8 +43,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
 import com.wireguard.android.backend.Backend;
@@ -60,15 +65,24 @@ import com.wireguard.insidepacket_android.models.ConfigModel.ConfigModel;
 import com.wireguard.insidepacket_android.models.UserTenants.Item;
 import com.wireguard.insidepacket_android.models.settings.TrustedWifi;
 import com.wireguard.insidepacket_android.services.BroadcastService;
+import com.wireguard.insidepacket_android.services.MyVpnService;
+import com.wireguard.insidepacket_android.services.WifiReceiver;
+import com.wireguard.insidepacket_android.utils.DebouncedOnClickListener;
 import com.wireguard.insidepacket_android.utils.PreferenceManager;
 import com.wireguard.insidepacket_android.utils.Utils;
 
+import org.json.JSONObject;
+
 import java.net.InetAddress;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import needle.Needle;
 
 public class HomeFragment extends Fragment {
+    private static final int NOTIFICATION_ID = 00010;
     View view;
     AppCompatActivity mContext;
     HomeViewModel homeViewModel;
@@ -81,11 +95,14 @@ public class HomeFragment extends Fragment {
     ImageView disconnectedLayout, connectedLayout, disconnectedCloudImage, connectedCloudImage;
     RelativeLayout notTrustedCloudImage, trustedTextLayout;
     LinearLayout wifiStatusLayout;
-    TextView wifiNameText, trustedNetworkText, timeLeftText, trafficStatus, tunnelIpStatus;
+    TextView wifiNameText, trustedNetworkText, timeLeftText, trafficStatus, tunnelIpStatus, publicIpStatus, gatewayStatus;
     Item currentItem;
     Dialog progressDialog;
     final Handler handler = new Handler();
     final int delay = 1000;
+    String ssid;
+    MyVpnService vpnService;
+    private WifiReceiver wifiReceiver;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -106,32 +123,108 @@ public class HomeFragment extends Fragment {
         initializeSharedPreference();
         initViews();
         initViewModel(mContext);
+        connectAlwaysOnVpn();
         onClickListeners();
         return view;
     }
 
+    private void connectAlwaysOnVpn() {
+
+        vpnService = new MyVpnService();
+        Intent vpnIntent = new Intent(getActivity(), MyVpnService.class);
+        vpnIntent.putExtra("wantToDisconnect", false);
+        mContext.startForegroundService(vpnIntent);
+
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(toggleBroadcastReceiver,
+                new IntentFilter(MyVpnService.CallBack));
+    }
+
+
+    final private BroadcastReceiver toggleBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (progressDialog != null) {
+                progressDialog.dismiss();
+            }
+            String traffic = intent.getStringExtra("trafficData");
+            String tunnelIp = intent.getStringExtra("tunnelIp");
+            Log.e("trafficVdeivuiew", "" + traffic + " " + tunnelIp);
+            if (traffic != null) {
+                trafficStatus.setText(traffic);
+            }
+            if (tunnelIp != null) {
+                tunnelIpStatus.setText(tunnelIp);
+            }
+            toggleViews(intent.getBooleanExtra("isConnected", false), intent.getBooleanExtra("isTrusted", false));
+        }
+    };
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        LocalBroadcastManager.getInstance(mContext).unregisterReceiver(toggleBroadcastReceiver);
+    }
+//    private void connectAlwaysOnVpn() {
+//        wifiReceiver = new WifiReceiver();
+//        IntentFilter intentFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+////        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//        mContext.registerReceiver(wifiReceiver, intentFilter, RECEIVER_EXPORTED);
+////        } else {
+////            mContext.registerReceiver(wifiReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+////        }
+//        startVpnService();
+//    }
+
+//    @Override
+//    public void onDestroy() {
+//        super.onDestroy();
+//        if (getContext() != null) {
+//            getContext().unregisterReceiver(wifiReceiver);
+//        }
+//    }
+//    private void startVpnService() {
+//        if (getContext() != null) {
+//            Intent vpnIntent = new Intent(getActivity(), MyVpnService.class);
+//            getContext().startService(vpnIntent);
+//        }
+//    }
+
     private void onClickListeners() {
-        connectedButton.setOnClickListener(v -> {
-            homeViewModel.getUserList(mContext, preferenceManager.getValue(_ACCESS_TOKEN, ""), basicInformation.getTenantName(), basicInformation.getUsername());
+        connectedButton.setOnClickListener(new DebouncedOnClickListener(100) {
+            @Override
+            public void onDebouncedClick(View v) {
+                progressDialog = new Utils().showProgressDialog(mContext);
+                progressDialog.show();
+                connectAlwaysOnVpn();
+//                homeViewModel.getUserList(mContext, preferenceManager.getValue(_ACCESS_TOKEN, ""), basicInformation.getTenantName(), basicInformation.getUsername());
+            }
         });
 
-        disconnectButton.setOnClickListener(v -> {
-            try {
-                backend.getRunningTunnelNames();
-            } catch (NullPointerException e) {
-                PersistentConnectionProperties.getInstance().setBackend(new GoBackend(mContext));
-                backend = PersistentConnectionProperties.getInstance().getBackend();
+        disconnectButton.setOnClickListener(new DebouncedOnClickListener(100) {
+            @Override
+            public void onDebouncedClick(View v) {
+                toggleViews(false, false);
+                Intent intent = new Intent(getActivity(), MyVpnService.class);
+                intent.putExtra("wantToDisconnect", true);
+                mContext.startService(intent);
+//                try {
+//                    backend.getRunningTunnelNames();
+//                } catch (NullPointerException e) {
+//                    PersistentConnectionProperties.getInstance().setBackend(new GoBackend(mContext));
+//                    backend = PersistentConnectionProperties.getInstance().getBackend();
+//                }
+//                AsyncTask.execute(() -> {
+//                    try {
+//                        backend = PersistentConnectionProperties.getInstance().getBackend();
+//                        backend.setState(PersistentConnectionProperties.getInstance().getTunnel(), DOWN, null);
+//                        SettingsSingleton.getInstance().setTunnelConnected(false);
+//                        toggleViews(false, checkIfAnyWifiIsTrusted());
+//                        handler.removeCallbacksAndMessages(null);
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                });
             }
-            AsyncTask.execute(() -> {
-                try {
-                    backend.setState(PersistentConnectionProperties.getInstance().getTunnel(), DOWN, null);
-                    SettingsSingleton.getInstance().setTunnelConnected(false);
-                    toggleViews(false, isTrustedWifi);
-                    handler.removeCallbacksAndMessages(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
         });
         accessResourcesBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -139,12 +232,7 @@ public class HomeFragment extends Fragment {
                 if (currentItem != null) {
                     progressDialog = new Utils().showProgressDialog(mContext);
                     progressDialog.show();
-                    homeViewModel.accessOrganization(mContext,
-                            preferenceManager.getValue(_ACCESS_TOKEN, ""),
-                            currentItem.getTenantName(),
-                            currentItem.getTunnelId(),
-                            basicInformation.getUsername()
-                    );
+                    homeViewModel.accessOrganization(mContext, preferenceManager.getValue(_ACCESS_TOKEN, ""), currentItem.getTenantName(), currentItem.getTunnelId(), basicInformation.getUsername());
                 }
             }
         });
@@ -167,12 +255,40 @@ public class HomeFragment extends Fragment {
         timeLeftText = view.findViewById(R.id.time_left_text);
         trafficStatus = view.findViewById(R.id.traffic_status);
         tunnelIpStatus = view.findViewById(R.id.tunnel_ip_status);
-        toggleViews(false, isTrustedWifi);
+        publicIpStatus = view.findViewById(R.id.public_ip_status);
+        gatewayStatus = view.findViewById(R.id.gateway_status);
+        if (backend != null) {
+            toggleViews((!(backend.getRunningTunnelNames().isEmpty())), checkIfAnyWifiIsTrusted());
+            getTunnelInformation();
+        } else {
+            toggleViews(false, checkIfAnyWifiIsTrusted());
+        }
+    }
+
+    private void getTunnelInformation() {
+        PreferenceManager stringPreferenceManager = new PreferenceManager(mContext, _PREFS_NAME);
+        gatewayStatus.setText(stringPreferenceManager.getValue("Gateway", "-"));
+        publicIpStatus.setText(stringPreferenceManager.getValue("public_ip", "-"));
+        tunnelIpStatus.setText(stringPreferenceManager.getValue("tunnel_ip", "-"));
+    }
+
+    private void saveTunnelInformation() {
+        PreferenceManager stringPreferenceManager = new PreferenceManager(mContext, _PREFS_NAME);
+        stringPreferenceManager.saveValue("Gateway", gatewayStatus.getText());
+        stringPreferenceManager.saveValue("public_ip", publicIpStatus.getText());
+        stringPreferenceManager.saveValue("tunnel_ip", tunnelIpStatus.getText());
+    }
+
+    private void removeTunnelInformation() {
+        PreferenceManager stringPreferenceManager = new PreferenceManager(mContext, _PREFS_NAME);
+        stringPreferenceManager.remove("Gateway");
+        stringPreferenceManager.remove("public_ip");
+        stringPreferenceManager.remove("tunnel_ip");
     }
 
     private void initializeSharedPreference() {
         preferenceManager = new PreferenceManager(mContext, _PREFS_NAME);
-        isTrustedWifi = checkIfAnyWifiIsTrusted();
+//        isTrustedWifi = checkIfAnyWifiIsTrusted();
     }
 
     private boolean checkIfAnyWifiIsTrusted() {
@@ -183,6 +299,15 @@ public class HomeFragment extends Fragment {
             }
         }
         return false;
+    }
+
+    private void startForegroundNotification(String notificationText) {
+        Notification notification = new Utils().makeForegroundNotification(getActivity(), notificationText);
+//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+//            startForeground(NOTIFICATION_ID, notification);
+//        } else {
+//            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+//        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -197,54 +322,53 @@ public class HomeFragment extends Fragment {
                     currentItem = getSelectedTunnel(items);
                     Intent ii = new Intent(mContext.getApplicationContext(), SplashActivity.class);
                     PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, ii, PendingIntent.FLAG_IMMUTABLE);
-                    new Utils().showPermanentNotification(mContext, "notify_001", "Vpn is Running!", 0, pendingIntent);
+                    new Utils().showPermanentNotification(mContext, CHANNEL_ID, "Vpn is Running!", NOTIFICATION_ID, pendingIntent);
+//                    startForegroundNotification("Vpn running");
                     connectVpn(currentItem, connectionModel.getConfigModel());
+                    progressDialog.dismiss();
                 }
             }
         });
         homeViewModel.getErrorUserListMutableList().observe(mContext, s -> {
             Toast.makeText(mContext, s, Toast.LENGTH_SHORT).show();
         });
-        homeViewModel.getTimeLeftMutableLiveData().observe(mContext, s -> {
-            //has to set trusted here and untrusted when disconnected
+        homeViewModel.getAccessOrganizationLiveData().observe(mContext, s -> {
             handleStartTimer(s);
             progressDialog.dismiss();
 
         });
-        homeViewModel.getErrorTimeLeftMutableList().observe(mContext, s -> {
+        homeViewModel.getTimeLeftErrorLiveData().observe(mContext, s -> {
             Toast.makeText(mContext, s, Toast.LENGTH_SHORT).show();
         });
         homeViewModel.getDataTransferMutableLiveData().observe(mContext, object -> {
             if (object != null) {
                 if (object instanceof Boolean) {
                     boolean isTrustedMarked = (Boolean) object;
-                    if (isTrustedMarked) {
-                        toggleViews(true, true);
-                    } else {
-                        if (backend != null) {
-                            AsyncTask.execute(() -> {
-                                try {
-                                    backend.setState(PersistentConnectionProperties.getInstance().getTunnel(), DOWN, null);
-                                    toggleViews(false, isTrustedWifi);
-                                    handler.removeCallbacksAndMessages(null);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                    if (backend != null) {
+                        if (!(backend.getRunningTunnelNames().isEmpty())) {
+                            if (isTrustedMarked) {
+                                toggleViews((!(backend.getRunningTunnelNames().isEmpty())), true);
+                                handleCancelTimer();
+                                timeLeftText.setVisibility(View.GONE);
+                            } else {
+                                if (backend != null) {
+                                    AsyncTask.execute(() -> {
+                                        try {
+                                            backend.setState(PersistentConnectionProperties.getInstance().getTunnel(), DOWN, null);
+                                            toggleViews((!(backend.getRunningTunnelNames().isEmpty())), isTrustedWifi);
+                                            handler.removeCallbacksAndMessages(null);
+                                            NotificationManager notificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+                                            notificationManager.cancel(NOTIFICATION_ID);
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    });
                                 }
-                            });
+                            }
+                            saveTunnelInformation();
                         }
                     }
                 }
-            }
-        });
-        homeViewModel.getIpAddressMutableLiveData().observe(mContext, object -> {
-            if (object != null) {
-                Log.e("ipAddress", object.toString());
-            }
-        });
-        homeViewModel.getIpAddressErrorMutableList().observe(mContext, new Observer<String>() {
-            @Override
-            public void onChanged(String o) {
-                Log.e("ipAddress", o);
             }
         });
     }
@@ -273,7 +397,7 @@ public class HomeFragment extends Fragment {
 
     private void connectVpn(Item item, ConfigModel configModel) {
         try {
-            backend.getRunningTunnelNames();
+            toggleViews(!(backend.getRunningTunnelNames().isEmpty()), checkIfAnyWifiIsTrusted());
         } catch (NullPointerException e) {
             PersistentConnectionProperties.getInstance().setBackend(new GoBackend(mContext));
             backend = PersistentConnectionProperties.getInstance().getBackend();
@@ -297,55 +421,23 @@ public class HomeFragment extends Fragment {
                 try {
                     if (backend.getState(PersistentConnectionProperties.getInstance().getTunnel()) == UP) {
                         backend.setState(tunnel, DOWN, null);
-                        toggleViews(false, isTrustedWifi);
+                        toggleViews(false, checkIfAnyWifiIsTrusted());
                         handler.removeCallbacksAndMessages(null);
                     } else {
 //                        handler.removeCallbacksAndMessages(null);
                         List<InetNetwork> allowedIp;
-                        if (isTrustedWifi) {
+                        if (checkIfAnyWifiIsTrusted()) {
                             allowedIp = new Utils().parseAllowedIPs(configModel.getAllowedIps());
                         } else {
                             allowedIp = new Utils().parseAllowedIPs(configModel.getUntrustedAllowedIps());
                         }
-//                        item.setTunnelIp("10.9.6.27");
-//                        configModel.setTunnelPrivateKey("eBeqf7IU9tIZNiecdlcXng5qwA5Dhri0zMWW0gue21Y=");
-//                        allowedIp = parseAllowedIPs("0.0.0.0/0");
-//                        configModel.setRemoteIp("139.178.81.253");
-//                        configModel.setRemotePort("52078");
-//                        configModel.setPublicKey("SYHr+NMIPZt3EWgabfsbw2fbw7rKUVONxMpJG5s/DA8=");
-//                        //Log.e("allowedIp", String.valueOf(allowedIp));
                         Config.Builder builder = new Config.Builder();
-                        backend.setState(
-                                tunnel,
-                                UP,
-                                builder
-                                        .setInterface(
-                                                interfaceBuilder
-                                                        .addAddress(InetNetwork.parse(item.getTunnelIp()))
-                                                        .parsePrivateKey(configModel.getTunnelPrivateKey())
-                                                        .addDnsServer(InetAddress.getByName(configModel.getTunnelDNS()))
-                                                        .build()
-                                        )
-                                        .addPeer(
-                                                peerBuilder
-                                                        .addAllowedIps(allowedIp)
-                                                        .setEndpoint(InetEndpoint.parse(configModel.getRemoteIp() + ":" + configModel.getRemotePort()))
+                        backend.setState(tunnel, UP, builder.setInterface(interfaceBuilder.addAddress(InetNetwork.parse(item.getTunnelIp())).parsePrivateKey(configModel.getTunnelPrivateKey()).addDnsServer(InetAddress.getByName(configModel.getTunnelDNS())).build()).addPeer(peerBuilder.addAllowedIps(allowedIp).setEndpoint(InetEndpoint.parse(configModel.getRemoteIp() + ":" + configModel.getRemotePort()))
 //                                                        .parsePublicKey(item.getPublicKey())
-                                                        .parsePreSharedKey(configModel.getPsk())
-                                                        .parsePublicKey(configModel.getPublicKey())
-                                                        .build()
-                                        )
-                                        .build()
-                        );
-                        homeViewModel.getIpAddress(mContext);
-                        //Log.e("WireGaurdNewPackage", "Tunnel IP: " + item.getTunnelIp());
-                        //Log.e("WireGaurdNewPackage", "Tunnel Private Key: " + configModel.getTunnelPrivateKey());
-                        //Log.e("WireGaurdNewPackage", "Remote IP: " + configModel.getRemoteIp());
-                        //Log.e("WireGaurdNewPackage", "Remote Port: " + configModel.getRemotePort());
-                        //Log.e("WireGaurdNewPackage", "Public Key: " + item.getPublicKey() + " " + configModel.getPublicKey());
-                        //Log.e("WireGaurdNewPackage", "Allowed IPs: " + allowedIp);
+                                .parsePreSharedKey(configModel.getPsk()).parsePublicKey(configModel.getPublicKey()).build()).build());
+                        publicIpStatus.setText(configModel.getRemoteIp());
                         SettingsSingleton.getInstance().setTunnelConnected(true);
-                        toggleViews(true, isTrustedWifi);
+                        toggleViews(true, checkIfAnyWifiIsTrusted());
 
                     }
                 } catch (Exception e) {
@@ -355,21 +447,11 @@ public class HomeFragment extends Fragment {
         });
         handler.postDelayed(new Runnable() {
             public void run() {
-                WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
                 try {
-                    String traffic = backend.getStatistics(PersistentConnectionProperties.getInstance().getTunnel()).totalRx() + "/" + backend.getStatistics(tunnel).totalTx();
+                    String txInMb = formatDecimal(bytesToKB(backend.getStatistics(tunnel).totalRx()));
+                    String rxInMb = formatDecimal(bytesToKB(backend.getStatistics(tunnel).totalTx()));
+                    String traffic = txInMb + "/" + rxInMb;
                     trafficStatus.setText(traffic);
-                    DhcpInfo d = wifiManager.getDhcpInfo();
-
-                    String s_dns1 = "DNS 1: " + d.dns1;
-                    String s_dns2 = "DNS 2: " + d.dns2;
-                    String s_gateway = "Default Gateway: " + new Utils().intToInetAddress(d.gateway).getHostAddress();
-                    String s_ipAddress = "IP Address: " + Formatter.formatIpAddress(d.ipAddress);
-                    String s_leaseDuration = "Lease Time: " + d.leaseDuration;
-                    String s_netmask = "Subnet Mask: " + d.netmask;
-                    String s_serverAddress = "Server IP: " + Formatter.formatIpAddress(d.serverAddress);
-
-//                    //Log.e("data", "Network Info\n" + s_dns1 + "\n" + s_dns2 + "\n" + s_gateway + "\n" + s_ipAddress + "\n" + s_leaseDuration + "\n" + s_netmask + "\n" + s_serverAddress);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -390,7 +472,8 @@ public class HomeFragment extends Fragment {
 
                     wifiInfo = wifiManager.getConnectionInfo();
                     if (wifiInfo.getSupplicantState() == SupplicantState.COMPLETED) {
-                        wifiNameText.setText(wifiInfo.getSSID());
+                        ssid = wifiInfo.getSSID();
+                        wifiNameText.setText(ssid);
                     }
                     if (isTrustedWifi) {
                         connectedButton.setVisibility(View.GONE);
@@ -483,15 +566,19 @@ public class HomeFragment extends Fragment {
     private void updateGUI(Intent intent) {
         if (intent.getExtras() != null) {
             long millisUntilFinished = intent.getLongExtra("countdown", 0);
-            long seconds = (millisUntilFinished / 1000) % 60;
-            long minutes = (millisUntilFinished / (1000 * 60)) % 60;
-            long hours = (millisUntilFinished / (1000 * 60 * 60)) % 60;
-            String time = (hours + " : " + minutes + " : " + seconds);
-            timeLeftText.setText(time);
+            Date date = new Date(millisUntilFinished);
+            SimpleDateFormat sdf;
+            if (millisUntilFinished >= 3600000) {
+                sdf = new SimpleDateFormat("HH:mm:ss");
+            } else {
+                sdf = new SimpleDateFormat("mm:ss");
+            }
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC")); // Set the time zone if needed
+            timeLeftText.setText(sdf.format(date));
             boolean countdownTimerFinished = intent.getBooleanExtra("countdownTimerFinished", true);
             if (countdownTimerFinished) {
                 timeLeftText.setVisibility(View.GONE);
-                toggleViews(true, false);
+                toggleViews(true, checkIfAnyWifiIsTrusted());
             } else {
                 timeLeftText.setVisibility(View.VISIBLE);
                 toggleViews(true, true);

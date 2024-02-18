@@ -2,10 +2,15 @@ package com.wireguard.insidepacket_android.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.viewpager.widget.ViewPager;
 
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.RelativeLayout;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -21,7 +26,7 @@ import com.wireguard.insidepacket_android.fragments.SupportFragment;
 import com.wireguard.insidepacket_android.models.FragmentModel.FragmentModel;
 import com.wireguard.insidepacket_android.utils.Utils;
 
-public class BottomNavigationActivity extends BaseActivity  {
+public class BottomNavigationActivity extends BaseActivity {
     RelativeLayout exitBtn;
     ViewPager viewPager;
     BottomNavigationView bottomNavigationView;
@@ -29,8 +34,13 @@ public class BottomNavigationActivity extends BaseActivity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        new Utils().showToFullScreen(BottomNavigationActivity.this);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_bottom_navigation);
-        new Utils().showToFullScreen(BottomNavigationActivity.this);
+//        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+//        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+//        // Hide system bars
+//        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars());
         viewPager = findViewById(R.id.view_pager);
         bottomNavigationView = findViewById(R.id.navigation);
         exitBtn = findViewById(R.id.exit_btn);
@@ -85,6 +95,7 @@ public class BottomNavigationActivity extends BaseActivity  {
             }
         });
     }
+
     private void initViewPager() {
         ArrayList<FragmentModel> fragments = getAllFragments();
         viewPager.setAdapter(new ViewPagerAdapter(getSupportFragmentManager(), fragments));

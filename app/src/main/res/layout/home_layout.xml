@@ -322,7 +322,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/gateway_text"
                 android:fontFamily="@font/montserrat_medium"
-                android:text="12/2 mbps"
+                android:text="Dallas"
                 android:textAlignment="center"
                 android:textColor="#6B55F0"
                 android:textSize="14sp" />

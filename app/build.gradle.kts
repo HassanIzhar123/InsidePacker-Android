@@ -47,4 +47,8 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 //    implementation("com.wireguard.android:tunnel:1.0.20230706")
     implementation("com.zsoltsafrany:needle:1.0.0")
+    implementation("com.karumi:dexter:6.2.3")
+    implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
+
+
 }

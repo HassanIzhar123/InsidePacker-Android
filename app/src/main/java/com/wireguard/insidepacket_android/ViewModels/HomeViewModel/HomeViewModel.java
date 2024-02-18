@@ -2,7 +2,6 @@ package com.wireguard.insidepacket_android.ViewModels.HomeViewModel;
 
 import android.app.Application;
 import android.content.Context;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -22,12 +21,11 @@ import needle.Needle;
 public class HomeViewModel extends AndroidViewModel {
     MutableLiveData<ConfigModel> configMutableLiveData;
     MutableLiveData<ConnectionModel> ConnectionMutableLiveData;
-    MutableLiveData<String> timeLeftMutableLiveData;
+    MutableLiveData<String> accessOrganizationLiveData;
     MutableLiveData<String> errorConfigMutableLiveData;
     MutableLiveData<String> errorUserListMutableList;
-    MutableLiveData<String> errorTimeLeftMutableList;
+    MutableLiveData<String> timeLeftErrorLiveData;
     MutableLiveData<Object> dataTransferMutableLiveData;
-    MutableLiveData<String> ipAddressMutableLiveData;
     MutableLiveData<String> ipAddressErrorMutableList;
     HomeRepo mainHomeRepo;
 
@@ -39,21 +37,21 @@ public class HomeViewModel extends AndroidViewModel {
         this.dataTransferMutableLiveData = dataTransferMutableLiveData;
     }
 
-    public MutableLiveData<String> getErrorTimeLeftMutableList() {
-        return errorTimeLeftMutableList;
+    public MutableLiveData<String> getTimeLeftErrorLiveData() {
+        return timeLeftErrorLiveData;
     }
 
-    public void setErrorTimeLeftMutableList(MutableLiveData<String> errorTimeLeftMutableList) {
-        this.errorTimeLeftMutableList = errorTimeLeftMutableList;
+    public void setTimeLeftErrorLiveData(MutableLiveData<String> timeLeftErrorLiveData) {
+        this.timeLeftErrorLiveData = timeLeftErrorLiveData;
     }
 
 
-    public MutableLiveData<String> getTimeLeftMutableLiveData() {
-        return timeLeftMutableLiveData;
+    public MutableLiveData<String> getAccessOrganizationLiveData() {
+        return accessOrganizationLiveData;
     }
 
-    public void setTimeLeftMutableLiveData(MutableLiveData<String> timeLeftMutableLiveData) {
-        this.timeLeftMutableLiveData = timeLeftMutableLiveData;
+    public void setAccessOrganizationLiveData(MutableLiveData<String> accessOrganizationLiveData) {
+        this.accessOrganizationLiveData = accessOrganizationLiveData;
     }
 
     public MutableLiveData<ConnectionModel> getConnectionMutableLiveData() {
@@ -80,14 +78,6 @@ public class HomeViewModel extends AndroidViewModel {
         return errorConfigMutableLiveData;
     }
 
-    public MutableLiveData<String> getIpAddressMutableLiveData() {
-        return ipAddressMutableLiveData;
-    }
-
-    public void setIpAddressMutableLiveData(MutableLiveData<String> ipAddressMutableLiveData) {
-        this.ipAddressMutableLiveData = ipAddressMutableLiveData;
-    }
-
     public MutableLiveData<String> getIpAddressErrorMutableList() {
         return ipAddressErrorMutableList;
     }
@@ -103,10 +93,9 @@ public class HomeViewModel extends AndroidViewModel {
         errorUserListMutableList = new MutableLiveData<>();
         configMutableLiveData = new MutableLiveData<>();
         errorConfigMutableLiveData = new MutableLiveData<>();
-        timeLeftMutableLiveData = new MutableLiveData<>();
-        errorTimeLeftMutableList = new MutableLiveData<>();
+        accessOrganizationLiveData = new MutableLiveData<>();
+        timeLeftErrorLiveData = new MutableLiveData<>();
         dataTransferMutableLiveData = new MutableLiveData<>();
-        ipAddressMutableLiveData = new MutableLiveData<>();
         ipAddressErrorMutableList = new MutableLiveData<>();
     }
 
@@ -114,7 +103,7 @@ public class HomeViewModel extends AndroidViewModel {
         Needle.onBackgroundThread().execute(new Runnable() {
             @Override
             public void run() {
-                mainHomeRepo.getUserList(context, accessToken, tunnel, username, new ViewModelCallBacks() {
+                mainHomeRepo.getHomeUserList(context, accessToken, tunnel, username, new ViewModelCallBacks() {
                     @Override
                     public void onSuccess(JSONObject result) {
 
@@ -138,7 +127,6 @@ public class HomeViewModel extends AndroidViewModel {
             }
         });
     }
-
     public void accessOrganization(Context context, String accessToken, String tunnel, String tunnelId, String username) {
         Needle.onBackgroundThread().execute(new Runnable() {
             @Override
@@ -146,8 +134,7 @@ public class HomeViewModel extends AndroidViewModel {
                 mainHomeRepo.accessOrganization(context, accessToken, username, tunnel, tunnelId, new ViewModelCallBacks() {
                     @Override
                     public void onSuccess(JSONObject result) {
-                        //Log.e("accessOrganization", result.toString());
-                        timeLeftMutableLiveData.postValue(result.optString("end_time"));
+                        accessOrganizationLiveData.postValue(result.optString("end_time"));
                     }
 
                     @Override
@@ -157,32 +144,8 @@ public class HomeViewModel extends AndroidViewModel {
                     @Override
                     public void onError(String message) {
                         //for testing only
-                        timeLeftMutableLiveData.postValue("180000");
-                        errorTimeLeftMutableList.postValue(message);
-                    }
-                });
-            }
-        });
-    }
-
-    public void getIpAddress(Context context) {
-        Needle.onBackgroundThread().execute(new Runnable() {
-            @Override
-            public void run() {
-                mainHomeRepo.getIpAddress(context, new ViewModelCallBacks() {
-                    @Override
-                    public void onSuccess(JSONObject result) {
-                        Log.e("ipAddressMutableLiveData",""+result.toString());
-                        ipAddressMutableLiveData.postValue(result.optString("ip"));
-                    }
-
-                    @Override
-                    public void onSuccess(JSONObject tenantListResult, JSONObject configResult) {
-                    }
-
-                    @Override
-                    public void onError(String message) {
-                        ipAddressErrorMutableList.postValue(message);
+                        accessOrganizationLiveData.postValue("180000");
+                        timeLeftErrorLiveData.postValue(message);
                     }
                 });
             }

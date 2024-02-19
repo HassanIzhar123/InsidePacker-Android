@@ -1,7 +1,11 @@
 package com.wireguard.insidepacket_android.Api;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -118,6 +122,14 @@ public class ApiClient {
     }
 
     public void homeGetRequest(String url, String tunnel, String username, String accessToken, VolleyCallback callback) {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(ctx, ConnectivityManager.class);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        Log.e("isConnected", "" + isConnected);
+        if (!isConnected) {
+            return;
+        }
+
         try {
             JsonObjectRequest request = new JsonObjectRequest(url, new Response.Listener<JSONObject>() {
                 @Override
@@ -138,9 +150,14 @@ public class ApiClient {
                                 public void onErrorResponse(VolleyError error) {
                                     String body;
                                     if (error != null) {
-                                        if (error.networkResponse.data != null) {
-                                            body = new String(error.networkResponse.data, StandardCharsets.UTF_8);
-                                            callback.onError(body);
+                                        if (error.networkResponse != null) {
+
+                                            if (error.networkResponse.data != null) {
+                                                body = new String(error.networkResponse.data, StandardCharsets.UTF_8);
+                                                callback.onError(body);
+                                            }
+                                        } else {
+                                            callback.onError("Error````");
                                         }
                                     } else {
                                         callback.onError("Error");
@@ -165,15 +182,17 @@ public class ApiClient {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    String body;
-                    if (error != null) {
-                        if (error.networkResponse.data != null) {
-                            body = new String(error.networkResponse.data, StandardCharsets.UTF_8);
-                            callback.onError(body);
-                        }
-                    } else {
-                        callback.onError("Error");
-                    }
+                    callback.onError("Error");
+
+//                    String body;
+//                    if (error != null) {
+//                        if (error.networkResponse.data != null) {
+//                            body = new String(error.networkResponse.data, StandardCharsets.UTF_8);
+//                            callback.onError(body);
+//                        }
+//                    } else {
+//                        callback.onError("Error");
+//                    }
                 }
             }) {
                 @Override

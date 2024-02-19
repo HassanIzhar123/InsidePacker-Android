@@ -83,6 +83,7 @@
             android:enabled="true"
             android:exported="true">
             <intent-filter>
+<!--                <action android:name="android.net.wifi.STATE_CHANGE" />-->
                 <action android:name="android.net.wifi.STATE_CHANGE" />
             </intent-filter>
         </receiver>

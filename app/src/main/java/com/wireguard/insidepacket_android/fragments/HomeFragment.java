@@ -1,6 +1,7 @@
 package com.wireguard.insidepacket_android.fragments;
 
 import static android.content.Context.RECEIVER_EXPORTED;
+import static androidx.core.content.ContextCompat.registerReceiver;
 import static com.wireguard.android.backend.Tunnel.State.DOWN;
 import static com.wireguard.android.backend.Tunnel.State.UP;
 import static com.wireguard.insidepacket_android.utils.AppStrings.CHANNEL_ID;
@@ -30,6 +31,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,6 +44,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -55,6 +58,7 @@ import com.wireguard.config.InetEndpoint;
 import com.wireguard.config.InetNetwork;
 import com.wireguard.config.Interface;
 import com.wireguard.config.Peer;
+import com.wireguard.insidepacket_android.Interfaces.WifiStateChangeListener;
 import com.wireguard.insidepacket_android.R;
 import com.wireguard.insidepacket_android.ViewModels.HomeViewModel.HomeViewModel;
 import com.wireguard.insidepacket_android.activities.SplashActivity;
@@ -129,16 +133,29 @@ public class HomeFragment extends Fragment {
     }
 
     private void connectAlwaysOnVpn() {
-
-        vpnService = new MyVpnService();
-        Intent vpnIntent = new Intent(getActivity(), MyVpnService.class);
-        vpnIntent.putExtra("wantToDisconnect", false);
-        mContext.startForegroundService(vpnIntent);
-
-        LocalBroadcastManager.getInstance(mContext).registerReceiver(toggleBroadcastReceiver,
-                new IntentFilter(MyVpnService.CallBack));
+        wifiReceiver = new WifiReceiver(new WifiStateChangeListener() {
+            @Override
+            public void onWifiStateChanged(boolean isConnected) {
+                Toast.makeText(mContext, "isConnected: " + isConnected, Toast.LENGTH_SHORT).show();
+                toggleViews(isConnected, checkIfAnyWifiIsTrusted());
+            }
+        });
+        IntentFilter intentFilter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.registerReceiver(mContext, wifiReceiver, intentFilter, ContextCompat.RECEIVER_EXPORTED);
+        } else {
+            ContextCompat.registerReceiver(mContext, wifiReceiver, intentFilter, ContextCompat.RECEIVER_EXPORTED);
+        }
+//        vpnService = new MyVpnService();
+//        Intent vpnIntent = new Intent(getActivity(), MyVpnService.class);
+//        vpnIntent.putExtra("activityContextClass", HomeFragment.class.getName());
+//        vpnIntent.putExtra("wantToDisconnect", false);
+////        mContext.startForegroundService(vpnIntent);
+//        mContext.startService(vpnIntent);
+//
+//        LocalBroadcastManager.getInstance(mContext).registerReceiver(toggleBroadcastReceiver,
+//                new IntentFilter(MyVpnService.CallBack));
     }
-
 
     final private BroadcastReceiver toggleBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -397,8 +414,11 @@ public class HomeFragment extends Fragment {
 
     private void connectVpn(Item item, ConfigModel configModel) {
         try {
+            PersistentConnectionProperties.getInstance().setBackend(new GoBackend(mContext));
+            backend = PersistentConnectionProperties.getInstance().getBackend();
             toggleViews(!(backend.getRunningTunnelNames().isEmpty()), checkIfAnyWifiIsTrusted());
         } catch (NullPointerException e) {
+            Log.e("tunnetuneel", "hi i ma here");
             PersistentConnectionProperties.getInstance().setBackend(new GoBackend(mContext));
             backend = PersistentConnectionProperties.getInstance().getBackend();
         }

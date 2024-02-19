@@ -25,6 +25,7 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleService;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -59,6 +60,7 @@ import com.wireguard.insidepacket_android.utils.Utils;
 import org.json.JSONObject;
 
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.List;
 
 public class MyVpnService extends VpnService {
@@ -102,47 +104,54 @@ public class MyVpnService extends VpnService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
-            boolean wantToDisconnect = intent.getBooleanExtra("wantToDisconnect", false); // Extract the data from the Intent
-            Log.e("wantToDisconnect", "" + wantToDisconnect);
-            if (wantToDisconnect) {
-                try {
-                    backend.getRunningTunnelNames();
-                } catch (NullPointerException e) {
-                    PersistentConnectionProperties.getInstance().setBackend(new GoBackend(getApplicationContext()));
-                    backend = PersistentConnectionProperties.getInstance().getBackend();
-                }
-                AsyncTask.execute(() -> {
-                    try {
-                        backend = PersistentConnectionProperties.getInstance().getBackend();
-                        backend.setState(PersistentConnectionProperties.getInstance().getTunnel(), DOWN, null);
-                        SettingsSingleton.getInstance().setTunnelConnected(false);
-                        handler.removeCallbacksAndMessages(null);
-                        vpnConnected = false;
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-            } else {
-                wifiReceiver = new WifiReceiver(this);
-                IntentFilter intentFilter = new IntentFilter("android.net.wifi.STATE_CHANGE");
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    registerReceiver(wifiReceiver, intentFilter, RECEIVER_EXPORTED);
-                } else {
-                    registerReceiver(wifiReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
-                }
-                startVpn();
-            }
-        } else {
-            wifiReceiver = new WifiReceiver(this);
-            IntentFilter intentFilter = new IntentFilter("android.net.wifi.STATE_CHANGE");
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(wifiReceiver, intentFilter, RECEIVER_EXPORTED);
-            } else {
-                registerReceiver(wifiReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
-            }
-            startVpn();
-        }
+
+//        if (intent != null) {
+//            String activityContextClass = intent.getStringExtra("activityContextClass");
+//            if (intent != null) {
+//                boolean wantToDisconnect = intent.getBooleanExtra("wantToDisconnect", false); // Extract the data from the Intent
+//                Log.e("wantToDisconnect", "" + wantToDisconnect);
+//                if (wantToDisconnect) {
+//                    try {
+//                        backend.getRunningTunnelNames();
+//                    } catch (NullPointerException e) {
+//                        PersistentConnectionProperties.getInstance().setBackend(new GoBackend(getApplicationContext()));
+//                        backend = PersistentConnectionProperties.getInstance().getBackend();
+//                    }
+//                    AsyncTask.execute(() -> {
+//                        try {
+//                            backend = PersistentConnectionProperties.getInstance().getBackend();
+//                            backend.setState(PersistentConnectionProperties.getInstance().getTunnel(), DOWN, null);
+//                            SettingsSingleton.getInstance().setTunnelConnected(false);
+//                            handler.removeCallbacksAndMessages(null);
+//                            vpnConnected = false;
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//                    });
+//                } else {
+//                    wifiReceiver = new WifiReceiver(this);
+//                    IntentFilter intentFilter = new IntentFilter("android.net.wifi.STATE_CHANGE");
+//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//                        registerReceiver(wifiReceiver, intentFilter, RECEIVER_EXPORTED);
+//                    } else {
+//                        registerReceiver(wifiReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+//                    }
+//                    startVpn();
+//                }
+//            } else {
+//                wifiReceiver = new WifiReceiver(this);
+//                IntentFilter intentFilter = new IntentFilter("android.net.wifi.STATE_CHANGE");
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//                    registerReceiver(wifiReceiver, intentFilter, RECEIVER_EXPORTED);
+//                } else {
+//                    registerReceiver(wifiReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+//                }
+//
+//                startVpn();
+//            }
+//        }
+
+
         return START_STICKY;
     }
 
@@ -178,7 +187,10 @@ public class MyVpnService extends VpnService {
 
         Intent intentPrepare = GoBackend.VpnService.prepare(mContext);
         if (intentPrepare != null) {
-            startActivityForResult((Activity) getApplicationContext(), intentPrepare, 0, null);
+//            startForegroundService(intentPrepare);
+//            ContextCompat.startForegroundService(mContext, intentPrepare);
+//            Context context = this;
+//            startActivityForResult(MyVpnService.this, intentPrepare, 0, null);
         }
         Interface.Builder interfaceBuilder = new Interface.Builder();
         Peer.Builder peerBuilder = new Peer.Builder();
@@ -201,10 +213,6 @@ public class MyVpnService extends VpnService {
                             allowedIp = new Utils().parseAllowedIPs(configModel.getUntrustedAllowedIps());
                         }
                         Config.Builder builder = new Config.Builder();
-                        backend.setState(tunnel, UP, builder.setInterface(interfaceBuilder.addAddress(InetNetwork.parse(item.getTunnelIp())).parsePrivateKey(configModel.getTunnelPrivateKey()).addDnsServer(InetAddress.getByName(configModel.getTunnelDNS())).build()).addPeer(peerBuilder.addAllowedIps(allowedIp).setEndpoint(InetEndpoint.parse(configModel.getRemoteIp() + ":" + configModel.getRemotePort()))
-//                                                        .parsePublicKey(item.getPublicKey())
-                                .parsePreSharedKey(configModel.getPsk()).parsePublicKey(configModel.getPublicKey()).build()).build());
-//                        publicIpStatus.setText(configModel.getRemoteIp());
                         SettingsSingleton.getInstance().setTunnelConnected(true);
                         Log.e("WireGaurdNewPackage", "Tunnel IP: " + item.getTunnelIp());
                         Log.e("WireGaurdNewPackage", "Tunnel Private Key: " + configModel.getTunnelPrivateKey());
@@ -212,6 +220,30 @@ public class MyVpnService extends VpnService {
                         Log.e("WireGaurdNewPackage", "Remote Port: " + configModel.getRemotePort());
                         Log.e("WireGaurdNewPackage", "Public Key: " + item.getPublicKey() + " " + configModel.getPublicKey());
                         Log.e("WireGaurdNewPackage", "Allowed IPs: " + allowedIp);
+//                        backend.setState(tunnel, UP, builder.setInterface(interfaceBuilder.addAddress(InetNetwork.parse(item.getTunnelIp())).parsePrivateKey(configModel.getTunnelPrivateKey()).addDnsServer(InetAddress.getByName(configModel.getTunnelDNS())).build()).addPeer(peerBuilder.addAllowedIps(allowedIp).setEndpoint(InetEndpoint.parse(configModel.getRemoteIp() + ":" + configModel.getRemotePort()))
+////                              .parsePublicKey(item.getPublicKey())
+//                                .parsePreSharedKey(configModel.getPsk()).parsePublicKey(configModel.getPublicKey()).build()).build());
+                        backend.setState(
+                                tunnel,
+                                UP,
+                                builder.setInterface(
+                                                interfaceBuilder
+                                                        .addAddress(InetNetwork.parse(item.getTunnelIp()))
+                                                        .parsePrivateKey(configModel.getTunnelPrivateKey())
+                                                        .addDnsServer(InetAddress.getByName(configModel.getTunnelDNS()))
+                                                        .build()
+                                        )
+                                        .addPeer(
+                                                peerBuilder
+                                                        .addAllowedIps(allowedIp)
+                                                        .setEndpoint(InetEndpoint.parse(configModel.getRemoteIp() + ":" + configModel.getRemotePort()))
+                                                        .parsePreSharedKey(configModel.getPsk())
+                                                        .parsePublicKey(configModel.getPublicKey())
+                                                        .build()
+                                        )
+                                        .build()
+                        );
+//                        publicIpStatus.setText(configModel.getRemoteIp());
                         intent.putExtra("isConnected", true);
                         intent.putExtra("isTrusted", checkIfAnyWifiIsTrusted());
                         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
@@ -224,11 +256,15 @@ public class MyVpnService extends VpnService {
         handler.postDelayed(new Runnable() {
             public void run() {
                 try {
-                    String txInMb = formatDecimal(bytesToKB(backend.getStatistics(tunnel).totalRx()));
-                    String rxInMb = formatDecimal(bytesToKB(backend.getStatistics(tunnel).totalTx()));
-                    String traffic = txInMb + "/" + rxInMb;
-                    intent.putExtra("trafficData", traffic);
-                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+                    if (tunnel != null) {
+                        if (backend.getState(PersistentConnectionProperties.getInstance().getTunnel()) == UP) {
+                            String txInMb = formatDecimal(bytesToKB(backend.getStatistics(tunnel).totalRx()));
+                            String rxInMb = formatDecimal(bytesToKB(backend.getStatistics(tunnel).totalTx()));
+                            String traffic = txInMb + "/" + rxInMb;
+                            intent.putExtra("trafficData", traffic);
+                            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+                        }
+                    }
                 } catch (Exception e) {
                     Log.e("Exceptuionemake", "" + e.toString());
                     throw new RuntimeException(e);

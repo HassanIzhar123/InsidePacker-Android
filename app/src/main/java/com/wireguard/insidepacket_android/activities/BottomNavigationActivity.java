@@ -34,13 +34,8 @@ public class BottomNavigationActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        new Utils().showToFullScreen(BottomNavigationActivity.this);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        new Utils().showToFullScreen(BottomNavigationActivity.this);
         setContentView(R.layout.activity_bottom_navigation);
-//        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-//        WindowInsetsControllerCompat windowInsetsController = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
-//        // Hide system bars
-//        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars());
         viewPager = findViewById(R.id.view_pager);
         bottomNavigationView = findViewById(R.id.navigation);
         exitBtn = findViewById(R.id.exit_btn);

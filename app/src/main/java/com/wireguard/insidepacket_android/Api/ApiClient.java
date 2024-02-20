@@ -125,7 +125,6 @@ public class ApiClient {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(ctx, ConnectivityManager.class);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
-        Log.e("isConnected", "" + isConnected);
         if (!isConnected) {
             return;
         }

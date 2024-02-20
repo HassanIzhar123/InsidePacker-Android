@@ -144,7 +144,7 @@ public class Utils {
 
     public void showToFullScreen(Activity activity) {
         Window window = activity.getWindow();
-        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
     }
 
     public void sendEmailWithLogs(Context context, String logs) {

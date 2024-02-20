@@ -28,6 +28,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.os.BuildCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -78,6 +79,7 @@ public class WifiReceiver extends BroadcastReceiver {
     final Handler handler = new Handler();
     final int delay = 1000;
     private WifiStateChangeListener callback;
+    Context mContext;
 
     public WifiReceiver(WifiStateChangeListener callback) {
         this.callback = callback;
@@ -85,6 +87,7 @@ public class WifiReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        this.mContext = context;
         try {
             String action = intent.getAction();
             if (action != null && action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
@@ -94,7 +97,7 @@ public class WifiReceiver extends BroadcastReceiver {
                     WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
                     WifiInfo wifiInfo = wifiManager.getConnectionInfo();
                     String ssid = wifiInfo.getSSID();
-                    Log.e("wifiChanging", "Wifi is CHanged Connecting to VPN");
+                    Log.e("wifiChanging", ssid + " Wifi is Changed Connecting to VPN");
                     startVpn(context);
                 }
             }
@@ -124,8 +127,7 @@ public class WifiReceiver extends BroadcastReceiver {
     }
 
     private void cancelAllNotifications() {
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        assert notificationManager != null;
+        NotificationManager notificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancelAll();
     }
 
@@ -225,6 +227,7 @@ public class WifiReceiver extends BroadcastReceiver {
                             String rxInMb = formatDecimal(bytesToKB(backend.getStatistics(tunnel).totalTx()));
                             String traffic = txInMb + "/" + rxInMb;
                             Log.e("trafficData", "" + traffic);
+                            callback.onTrafficSent(traffic);
 //                            intent.putExtra("trafficData", traffic);
 //                            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
                         }
@@ -301,6 +304,7 @@ public class WifiReceiver extends BroadcastReceiver {
                                         )
                                         .build()
                         );
+                        callback.onWifiStateChanged(true);
 //                        publicIpStatus.setText(configModel.getRemoteIp());
 //                        intent.putExtra("isConnected", true);
 //                        intent.putExtra("isTrusted", checkIfAnyWifiIsTrusted());

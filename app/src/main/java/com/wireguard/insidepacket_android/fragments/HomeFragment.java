@@ -137,7 +137,13 @@ public class HomeFragment extends Fragment {
             @Override
             public void onWifiStateChanged(boolean isConnected) {
                 Toast.makeText(mContext, "isConnected: " + isConnected, Toast.LENGTH_SHORT).show();
+                Log.e("isConnected", "" + isConnected + " " + checkIfAnyWifiIsTrusted());
                 toggleViews(isConnected, checkIfAnyWifiIsTrusted());
+            }
+
+            @Override
+            public void onTrafficSent(String traffic) {
+
             }
         });
         IntentFilter intentFilter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);

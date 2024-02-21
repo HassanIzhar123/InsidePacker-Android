@@ -61,7 +61,7 @@
                         android:paddingStart="40dp"
                         android:paddingEnd="0dp"
                         android:src="@drawable/disconnected_icon"
-                        android:visibility="gone" />
+                        android:visibility="visible" />
 
                     <ImageView
                         android:id="@+id/connected_cloud_image"
@@ -77,6 +77,7 @@
                         android:id="@+id/not_trusted_cloud_image"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:visibility="gone"
                         android:animateLayoutChanges="true">
 
                         <ImageView
@@ -161,6 +162,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
+                        android:visibility="gone"
                         android:layout_toEndOf="@+id/trusted_layout"
                         android:animateLayoutChanges="true">
 
@@ -231,7 +233,6 @@
                     android:textAlignment="center"
                     android:textColor="@color/white"
                     android:textSize="20sp"
-                    android:visibility="gone"
                     app:backgroundTint="#12B204"
                     app:cornerRadius="10dp" />
 
@@ -243,6 +244,7 @@
                     android:layout_marginTop="30dp"
                     android:layout_marginEnd="45dp"
                     android:animateLayoutChanges="true"
+                    android:visibility="gone"
                     android:fontFamily="@font/montserrat_medium"
                     android:text="@string/disconnect"
                     android:textAlignment="center"
@@ -266,6 +268,7 @@
         android:layout_marginEnd="15dp"
         android:layout_marginBottom="15dp"
         android:animateLayoutChanges="true"
+        android:visibility="gone"
         android:baselineAligned="false"
         android:orientation="horizontal"
         android:weightSum="4">
@@ -293,7 +296,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/traffic_in_out_text"
                 android:fontFamily="@font/montserrat_medium"
-                android:text="12/2 mbps"
+                android:text="-"
                 android:textAlignment="center"
                 android:textColor="#6B55F0"
                 android:textSize="14sp" />
@@ -351,7 +354,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/public_ip_text"
                 android:fontFamily="@font/montserrat_medium"
-                android:text="12/2 mbps"
+                android:text="-"
                 android:textAlignment="center"
                 android:textColor="#6B55F0"
                 android:textSize="14sp" />
@@ -380,7 +383,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/tunnel_ip_text"
                 android:fontFamily="@font/montserrat_medium"
-                android:text="12/2 mbps"
+                android:text="-"
                 android:textAlignment="center"
                 android:textColor="#6B55F0"
                 android:textSize="14sp" />

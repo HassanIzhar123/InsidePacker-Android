@@ -49,6 +49,6 @@ dependencies {
     implementation("com.zsoltsafrany:needle:1.0.0")
     implementation("com.karumi:dexter:6.2.3")
     implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
-
+    implementation("androidx.work:work-runtime:2.9.0")
 
 }

@@ -42,7 +42,7 @@ public class BroadcastService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String maxCountString = intent.getStringExtra("maxCountDownValue");
-        //Log.e("maxCountString", "" + maxCountString);
+        Log.e("maxCountString", "" + maxCountString);
         if (maxCountString != null) {
             long maxCount = Long.parseLong(maxCountString);
             cdt = new CountDownTimer(maxCount, 1000) {

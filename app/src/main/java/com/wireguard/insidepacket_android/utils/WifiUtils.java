@@ -5,10 +5,12 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.wireguard.insidepacket_android.essentials.SettingsSingleton;
@@ -32,7 +34,7 @@ public class WifiUtils {
                 deniedPermissions.add(permission);
             }
         }
-        Log.e("deniedpermission",""+deniedPermissions.size());
+        Log.e("deniedpermission", "" + deniedPermissions.size());
         if (deniedPermissions.isEmpty()) {
             TrustedWifi connectedWifi = getConnectedWifiSSID(context);
             if (connectedWifi != null) {
@@ -113,5 +115,143 @@ public class WifiUtils {
 
         return hasAllPermissions;
 
+    }
+
+    public static WifiInfo getWifiInfo(Context context) {
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        if (wifiManager != null) {
+            return wifiManager.getConnectionInfo();
+        }
+        return null;
+    }
+
+    public static String getConnectionType(Context context) {
+        String connectionType = "unknown";
+
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+            if (activeNetwork != null && activeNetwork.isConnected()) {
+                if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
+                    connectionType = "wifi";
+                } else if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+                    connectionType = "mobile";
+                }
+            }
+        }
+
+        return connectionType;
+    }
+
+    public static String getBSSID(Context context) {
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        if (wifiManager != null) {
+            WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+            if (wifiInfo != null) {
+                return wifiInfo.getBSSID();
+            }
+        }
+        return null;
+    }
+
+    public static int getRSSI(Context context) {
+        WifiInfo wifiInfo = getWifiInfo(context);
+        if (wifiInfo != null) {
+            return wifiInfo.getRssi();
+        }
+        return 0;
+    }
+
+//    public static int getNoise(Context context) {
+//        WifiInfo wifiInfo = getWifiInfo(context);
+//        if (wifiInfo != null) {
+//            return wifiInfo.getNoise();
+//        }
+//        return 0;
+//    }
+
+    public static String getPhyMode(Context context) {
+        WifiInfo wifiInfo = getWifiInfo(context);
+        if (wifiInfo != null) {
+            int frequency = wifiInfo.getFrequency();
+            if (frequency >= 2412 && frequency <= 2484) {
+                return "802.11b/g";
+            } else if (frequency >= 5170 && frequency <= 5825) {
+                return "802.11a";
+            } else if (frequency >= 5180 && frequency <= 5805) {
+                return "802.11ac";
+            } else {
+                return "Unknown";
+            }
+        }
+        return "Unknown";
+    }
+
+    public static String getSSID(Context context) {
+        WifiInfo wifiInfo = getWifiInfo(context);
+        if (wifiInfo != null) {
+            return wifiInfo.getSSID();
+        }
+        return null;
+    }
+
+    public static int getWifiChannel(Context context) {
+        WifiInfo wifiInfo = getWifiInfo(context);
+        if (wifiInfo != null) {
+            int frequency = wifiInfo.getFrequency();
+            return convertFrequencyToChannel(frequency);
+        }
+        return -1; // Indicating failure to get the channel
+    }
+
+    private static int convertFrequencyToChannel(int frequency) {
+        if (frequency >= 2412 && frequency <= 2484) {
+            return (frequency - 2412) / 5 + 1;
+        } else if (frequency >= 5170 && frequency <= 5825) {
+            return (frequency - 5170) / 5 + 34;
+        } else if (frequency >= 5180 && frequency <= 5805) {
+            return (frequency - 5180) / 5 + 36;
+        } else {
+            return -1; // Invalid frequency
+        }
+    }
+
+    public static int getNoise(Context context) {
+        WifiInfo wifiInfo = getWifiInfo(context);
+        if (wifiInfo != null) {
+            int rssi = wifiInfo.getRssi();
+            int snr = wifiInfo.getLinkSpeed(); // For demonstration purposes, you can use getLinkSpeed as SNR
+            return snr - rssi;
+        }
+        return 0; // Default value if unable to get noise
+    }
+
+    public static String getWifiSecurity(Context context, String ssid) {
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        if (wifiManager != null) {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return "";
+            }
+            for (WifiConfiguration wifiConfig : wifiManager.getConfiguredNetworks()) {
+                if (wifiConfig.SSID != null && wifiConfig.SSID.equals("\"" + ssid + "\"")) {
+                    return getSecurityType(wifiConfig);
+                }
+            }
+        }
+        return "Unknown"; // Default value if security type cannot be determined
+    }
+
+    private static String getSecurityType(WifiConfiguration wifiConfig) {
+        if (wifiConfig.allowedKeyManagement.get(WifiConfiguration.KeyMgmt.WPA_PSK)) {
+            return "WPA";
+        }
+        if (wifiConfig.allowedKeyManagement.get(WifiConfiguration.KeyMgmt.WPA_EAP) ||
+                wifiConfig.allowedKeyManagement.get(WifiConfiguration.KeyMgmt.IEEE8021X)) {
+            return "WPA_EAP";
+        }
+        if (wifiConfig.wepKeys[0] != null) {
+            return "WEP";
+        }
+        return "Open";
     }
 }

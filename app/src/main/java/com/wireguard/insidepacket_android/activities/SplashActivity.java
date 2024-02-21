@@ -134,6 +134,7 @@ public class SplashActivity extends AppCompatActivity {
                     JSONObject object = new JSONObject(s);
                     Toast.makeText(SplashActivity.this, object.getString("detail"), Toast.LENGTH_SHORT).show();
                 } catch (JSONException e) {
+                    Toast.makeText(mContext, "signing not Successful", Toast.LENGTH_SHORT).show();
                 }
                 navigateToMainActivity();
             }

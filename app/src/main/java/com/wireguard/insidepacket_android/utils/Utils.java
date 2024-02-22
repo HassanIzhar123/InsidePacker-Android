@@ -2,6 +2,7 @@ package com.wireguard.insidepacket_android.utils;
 
 import static com.wireguard.insidepacket_android.utils.AppStrings.CHANNEL_ID;
 import static com.wireguard.insidepacket_android.utils.AppStrings.CHANNEL_NAME;
+import static com.wireguard.insidepacket_android.utils.AppStrings.CONNECTED_TUNNEL;
 import static com.wireguard.insidepacket_android.utils.AppStrings._PREFS_NAME;
 import static com.wireguard.insidepacket_android.utils.AppStrings._SETTINGS;
 
@@ -17,6 +18,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -28,6 +30,7 @@ import com.wireguard.config.InetNetwork;
 import com.wireguard.config.ParseException;
 import com.wireguard.insidepacket_android.R;
 import com.wireguard.insidepacket_android.activities.SplashActivity;
+import com.wireguard.insidepacket_android.models.ConnectedTunnelModel.ConnectedTunnelModel;
 import com.wireguard.insidepacket_android.models.settings.SettingsModel;
 import com.wireguard.insidepacket_android.services.MyVpnService;
 
@@ -62,6 +65,27 @@ public class Utils {
         pref.saveValue(_SETTINGS, json);
     }
 
+    public ConnectedTunnelModel getConnectedTunnel(Context context) {
+        PreferenceManager pref = new PreferenceManager(context, _PREFS_NAME);
+        String defaultJson = "{\n" +
+                "\"isConnected\":false,\n" +
+                "\"tunnelIp\":\"\",\n" +
+                "\"publicIp\":\"\",\n" +
+                "\"gateway\":\"\",\n" +
+                "}";
+        String json = pref.getValue(CONNECTED_TUNNEL, defaultJson);
+        Log.e("jsonValuecheck", "" + json);
+        Gson gson = new Gson();
+        return gson.fromJson(json, ConnectedTunnelModel.class);
+    }
+
+    public void saveConnectedTunnel(Context context, ConnectedTunnelModel connectedTunnelModel) {
+        PreferenceManager pref = new PreferenceManager(context, _PREFS_NAME);
+        Gson gson = new Gson();
+        String json = gson.toJson(connectedTunnelModel);
+        pref.saveValue(CONNECTED_TUNNEL, json);
+    }
+
     public Notification showPermanentNotification(Context mContext, String channelId, String description, int id, PendingIntent pendingIntent) {
         NotificationManager mNotificationManager;
 
@@ -94,7 +118,8 @@ public class Utils {
         mNotificationManager.notify(id, notification);
         return notification;
     }
-    public Notification makeForegroundNotification( Context context, String notificationText) {
+
+    public Notification makeForegroundNotification(Context context, String notificationText) {
         Intent ii = new Intent(context, SplashActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, ii, PendingIntent.FLAG_IMMUTABLE);
         createNotificationChannel(context);
@@ -125,6 +150,7 @@ public class Utils {
         NotificationManager service = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         service.createNotificationChannel(chan);
     }
+
     public Dialog showProgressDialog(Context context) {
         Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(1);

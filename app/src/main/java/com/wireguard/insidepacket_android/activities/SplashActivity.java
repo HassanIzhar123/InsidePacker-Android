@@ -32,6 +32,7 @@ import com.wireguard.insidepacket_android.ViewModels.SignInViewModel.SignInViewM
 import com.wireguard.insidepacket_android.essentials.SettingsSingleton;
 import com.wireguard.insidepacket_android.models.AccessToken.AccessToken;
 import com.wireguard.insidepacket_android.models.BasicInformation.BasicInformation;
+import com.wireguard.insidepacket_android.models.ConnectedTunnelModel.ConnectedTunnelModel;
 import com.wireguard.insidepacket_android.models.settings.SettingsModel;
 import com.wireguard.insidepacket_android.utils.PreferenceManager;
 import com.wireguard.insidepacket_android.utils.Utils;

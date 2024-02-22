@@ -10,5 +10,6 @@ public class AppStrings {
     public static String WIFI_LIST_KEY = "wifi_list";
     public static final String CHANNEL_ID = "InsidePacketID";
     public static final String CHANNEL_NAME = "InsidePacketChannel";
+    public static final String CONNECTED_TUNNEL = "connected_tunnel";
 
 }

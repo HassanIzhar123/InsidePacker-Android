@@ -52,6 +52,7 @@ import com.wireguard.insidepacket_android.essentials.PersistentConnectionPropert
 import com.wireguard.insidepacket_android.essentials.SettingsSingleton;
 import com.wireguard.insidepacket_android.models.BasicInformation.BasicInformation;
 import com.wireguard.insidepacket_android.models.ConfigModel.ConfigModel;
+import com.wireguard.insidepacket_android.models.ConnectedTunnelModel.ConnectedTunnelModel;
 import com.wireguard.insidepacket_android.models.ConnectionModel.ConnectionModel;
 import com.wireguard.insidepacket_android.models.Diagnostics;
 import com.wireguard.insidepacket_android.models.UserTenants.Item;
@@ -296,6 +297,12 @@ public class WifiReceiver extends BroadcastReceiver {
             backend = PersistentConnectionProperties.getInstance().getBackend();
         }
         connect(context, item, configModel);
+        ConnectedTunnelModel connectedTunnelModel = new ConnectedTunnelModel();
+        connectedTunnelModel.setConnected(true);
+        connectedTunnelModel.setTunnelIp(item.getTunnelIp());
+        connectedTunnelModel.setPublicIp(configModel.getRemoteIp());
+        connectedTunnelModel.setGateway("Dallas");
+        new Utils().saveConnectedTunnel(context, connectedTunnelModel);
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             public void run() {
@@ -305,7 +312,7 @@ public class WifiReceiver extends BroadcastReceiver {
                             String txInMb = formatDecimal(bytesToKB(backend.getStatistics(tunnel).totalRx()));
                             String rxInMb = formatDecimal(bytesToKB(backend.getStatistics(tunnel).totalTx()));
                             String traffic = txInMb + "/" + rxInMb;
-                            Log.e("trafficData", "" + traffic);
+                            //Log.e("trafficData", "" + traffic);
                             callback.onTrafficSent(traffic, configModel.getRemoteIp(), item.getTunnelIp());
                         }
                     }

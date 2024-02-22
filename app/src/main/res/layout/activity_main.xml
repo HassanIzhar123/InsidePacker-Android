@@ -54,13 +54,12 @@
                 android:textColor="@color/white"
                 android:textSize="21sp" />
 
-            <com.felipecsl.gifimageview.library.GifImageView
+            <ImageView
                 android:id="@+id/person_gif"
                 android:layout_width="300dp"
                 android:layout_height="300dp"
                 android:layout_below="@+id/all_resources_text"
-                android:layout_centerHorizontal="true"
-                android:src="@drawable/person_standing_gif" />
+                android:layout_centerHorizontal="true" />
 
             <Button
                 android:id="@+id/sign_in_btn"

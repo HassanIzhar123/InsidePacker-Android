@@ -70,8 +70,10 @@ import com.wireguard.insidepacket_android.ViewModels.HomeViewModel.HomeViewModel
 import com.wireguard.insidepacket_android.activities.SplashActivity;
 import com.wireguard.insidepacket_android.essentials.PersistentConnectionProperties;
 import com.wireguard.insidepacket_android.essentials.SettingsSingleton;
+import com.wireguard.insidepacket_android.essentials.WgTunnel;
 import com.wireguard.insidepacket_android.models.BasicInformation.BasicInformation;
 import com.wireguard.insidepacket_android.models.ConfigModel.ConfigModel;
+import com.wireguard.insidepacket_android.models.ConnectedTunnelModel.ConnectedTunnelModel;
 import com.wireguard.insidepacket_android.models.UserTenants.Item;
 import com.wireguard.insidepacket_android.models.settings.SettingsModel;
 import com.wireguard.insidepacket_android.models.settings.TrustedWifi;
@@ -88,6 +90,7 @@ import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 
 import needle.Needle;
@@ -100,6 +103,7 @@ public class HomeFragment extends Fragment {
     BasicInformation basicInformation;
     PreferenceManager preferenceManager;
     Backend backend = PersistentConnectionProperties.getInstance().getBackend();
+    WgTunnel tunnel = PersistentConnectionProperties.getInstance().getTunnel();
     boolean isTrustedWifi = false;
     Button connectedButton, disconnectButton, accessResourcesBtn;
     TextView networkStatus;
@@ -109,12 +113,10 @@ public class HomeFragment extends Fragment {
     TextView wifiNameText, trustedNetworkText, timeLeftText, trafficStatus, tunnelIpStatus, publicIpStatus, gatewayStatus;
     Item currentItem;
     Dialog progressDialog;
-    final Handler handler = new Handler();
-    final int delay = 1000;
     String ssid;
-    MyVpnService vpnService;
     private WifiReceiver wifiReceiver;
     boolean isAnyWifiTrusted = false, countdownTimerFinished = false;
+    int delay = 1000;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -141,8 +143,10 @@ public class HomeFragment extends Fragment {
     }
 
     private void connectAlwaysOnVpn() {
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
         progressDialog = new Utils().showProgressDialog(mContext);
-        progressDialog.show();
         wifiReceiver = new WifiReceiver(getActivity(), new WifiStateChangeListener() {
             @Override
             public void onWifiStateChanged(boolean isConnected, boolean isTrusted, ConfigModel configModel, Item item) {
@@ -179,12 +183,55 @@ public class HomeFragment extends Fragment {
                 break;
             }
         }
-        Log.e("isAnyWifiTrusted", "" + isAnyWifiTrusted);
-        if (!isAnyWifiTrusted) {
-            wifiReceiver.startVpn(mContext, false);
-        } else {
-            if (settingsModel.getAlwaysOnVpn()) {
+        boolean isConnected = false;
+        try {
+            Set<String> tunnels = backend.getRunningTunnelNames();
+            Log.e("tunnelConnnected", "" + tunnels);
+            if (!tunnels.isEmpty()) {
+                isConnected = true;
+            }
+        } catch (NullPointerException e) {
+            PersistentConnectionProperties.getInstance().setBackend(new GoBackend(mContext));
+            backend = PersistentConnectionProperties.getInstance().getBackend();
+            tunnel = PersistentConnectionProperties.getInstance().getTunnel();
+        }
+        Log.e("wifiChanging1", "" + isConnected + " " + isAnyWifiTrusted + " " + settingsModel.getAlwaysOnVpn());
+        if (!isConnected) {
+            if (!isAnyWifiTrusted) {
+                progressDialog.show();
                 wifiReceiver.startVpn(mContext, false);
+            } else {
+                if (settingsModel.getAlwaysOnVpn()) {
+                    progressDialog.show();
+                    wifiReceiver.startVpn(mContext, false);
+                }
+            }
+        } else {
+            ConnectedTunnelModel connectedTunnelModel = new Utils().getConnectedTunnel(mContext);
+            SettingsModel settings = new Utils().getSettings(mContext);
+            Log.e("tunnelIsConnected", "" + connectedTunnelModel.isConnected());
+            if (connectedTunnelModel.isConnected()) {
+                toggleViews(isConnected, settings.getTrustedWifi().size() > 0);
+                publicIpStatus.setText(connectedTunnelModel.getPublicIp());
+                tunnelIpStatus.setText(connectedTunnelModel.getTunnelIp());
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    public void run() {
+                        try {
+                            if (tunnel != null) {
+                                if (backend.getState(PersistentConnectionProperties.getInstance().getTunnel()) == UP) {
+                                    String txInMb = formatDecimal(bytesToKB(backend.getStatistics(tunnel).totalRx()));
+                                    String rxInMb = formatDecimal(bytesToKB(backend.getStatistics(tunnel).totalTx()));
+                                    String traffic = txInMb + "/" + rxInMb;
+                                    trafficStatus.setText(traffic);
+                                }
+                            }
+                        } catch (Exception e) {
+                            Log.e("Exceptuionemake", "" + e.toString());
+                        }
+                        handler.postDelayed(this, delay);
+                    }
+                }, delay);
             }
         }
     }
@@ -192,8 +239,11 @@ public class HomeFragment extends Fragment {
     public void disconnectVpn() {
         try {
             wifiReceiver.getBackend().setState(wifiReceiver.getTunnel(), UP, null);
+            ConnectedTunnelModel connectedTunnelModel = new ConnectedTunnelModel();
+            connectedTunnelModel.setConnected(false);
+            new Utils().saveConnectedTunnel(mContext, connectedTunnelModel);
         } catch (Exception e) {
-            Log.e("wifireciever", "" + e.toString());
+            Log.e("wifireciever", e.toString());
         }
 //                mContext.unregisterReceiver(wifiReceiver);
         NotificationManager notificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);

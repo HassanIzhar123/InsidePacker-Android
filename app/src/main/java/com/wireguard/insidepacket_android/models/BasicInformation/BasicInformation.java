@@ -5,6 +5,16 @@ import com.google.gson.Gson;
 public class BasicInformation {
     private String username;
     private String password;
+
+    public String getNewPassword() {
+        return new_password;
+    }
+
+    public void setNewPassword(String new_password) {
+        this.new_password = new_password;
+    }
+
+    private String new_password;
     private String tenant_name;
 
     public String getUsername() {

@@ -127,14 +127,14 @@ public class SupportFragment extends Fragment {
         userGuidLinesLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.insidepacket.com/"));
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://partners.insidepacket.com/agent-management/"));
                 startActivity(browserIntent);
             }
         });
         liveChatLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.insidepacket.com/"));
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://join.slack.com/t/slack-99v9740/shared_invite/zt-2dylwbiiq-~2k70PDwFgQGK0F7ev04RQ"));
                 startActivity(browserIntent);
             }
         });

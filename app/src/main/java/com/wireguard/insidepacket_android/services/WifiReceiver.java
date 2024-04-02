@@ -1,7 +1,6 @@
 package com.wireguard.insidepacket_android.services;
 
 import static androidx.core.app.ActivityCompat.startActivityForResult;
-import static androidx.core.content.ContextCompat.getSystemService;
 import static com.wireguard.android.backend.Tunnel.State.DOWN;
 import static com.wireguard.android.backend.Tunnel.State.UP;
 import static com.wireguard.insidepacket_android.utils.AppStrings.CHANNEL_ID;
@@ -18,23 +17,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Handler;
-import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
-import androidx.core.content.ContextCompat;
-import androidx.core.os.BuildCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import com.google.gson.Gson;
-import com.karumi.dexter.BuildConfig;
 import com.wireguard.android.backend.Backend;
 import com.wireguard.android.backend.GoBackend;
 import com.wireguard.android.backend.Tunnel;
@@ -58,7 +49,6 @@ import com.wireguard.insidepacket_android.models.Diagnostics;
 import com.wireguard.insidepacket_android.models.UserTenants.Item;
 import com.wireguard.insidepacket_android.models.UserTenants.UserTenants;
 import com.wireguard.insidepacket_android.models.settings.TrustedWifi;
-import com.wireguard.insidepacket_android.services.MyVpnService;
 import com.wireguard.insidepacket_android.utils.PreferenceManager;
 import com.wireguard.insidepacket_android.utils.Utils;
 import com.wireguard.insidepacket_android.utils.WifiUtils;
@@ -66,7 +56,6 @@ import com.wireguard.insidepacket_android.utils.WifiUtils;
 import org.json.JSONObject;
 
 import java.net.InetAddress;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
@@ -289,8 +278,8 @@ public class WifiReceiver extends BroadcastReceiver {
 
     private void connectVpn(Context context, Item item, ConfigModel configModel) {
         try {
-            PersistentConnectionProperties.getInstance().setBackend(new GoBackend(context));
-            backend = PersistentConnectionProperties.getInstance().getBackend();
+//            PersistentConnectionProperties.getInstance().setBackend(new GoBackend(context));
+//            backend = PersistentConnectionProperties.getInstance().getBackend();
             backend.getRunningTunnelNames();
         } catch (NullPointerException e) {
             PersistentConnectionProperties.getInstance().setBackend(new GoBackend(context));
@@ -327,10 +316,9 @@ public class WifiReceiver extends BroadcastReceiver {
 
     public void connect(Context mContext, Item item, ConfigModel configModel) {
         tunnel = PersistentConnectionProperties.getInstance().getTunnel();
-        Intent intentPrepare = GoBackend.VpnService.prepare(mContext);
-        if (intentPrepare != null) {
-            startActivityForResult((Activity) mContext, intentPrepare, 0, null);
-        }
+        //send result to activity to show the traffic
+        callback.onConnectionStart();
+
         Interface.Builder interfaceBuilder = new Interface.Builder();
         Peer.Builder peerBuilder = new Peer.Builder();
         AsyncTask.execute(new Runnable() {
@@ -348,43 +336,45 @@ public class WifiReceiver extends BroadcastReceiver {
                         }
                         Config.Builder builder = new Config.Builder();
                         SettingsSingleton.getInstance().setTunnelConnected(true);
-                        try {
-                            backend.setState(
-                                    tunnel,
-                                    UP,
-                                    builder.setInterface(
-                                                    interfaceBuilder
-                                                            .addAddress(InetNetwork.parse(item.getTunnelIp()))
-                                                            .parsePrivateKey(configModel.getTunnelPrivateKey())
-                                                            .addDnsServer(InetAddress.getByName(configModel.getTunnelDNS()))
-                                                            .build()
-                                            )
-                                            .addPeer(
-                                                    peerBuilder
-                                                            .addAllowedIps(allowedIp)
-                                                            .setEndpoint(InetEndpoint.parse(configModel.getRemoteIp() + ":" + configModel.getRemotePort()))
-                                                            .parsePreSharedKey(configModel.getPsk())
-                                                            .parsePublicKey(configModel.getPublicKey())
-                                                            .parsePersistentKeepalive("7")
-                                                            .build()
-                                            )
-                                            .build()
-                            );
-                            activity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    callback.onWifiStateChanged(true, checkIfAnyWifiIsTrusted(), configModel, item);
-                                }
-                            });
-                        } catch (Exception e) {
-                            Log.e("Exception", "" + e.toString() + " " + Arrays.toString(e.getStackTrace()));
-                            activity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    callback.onError(e.toString());
-                                }
-                            });
-                        }
+//                        try {
+                        Log.e("isBackendNull", "" + (backend != null));
+
+                        backend.setState(
+                                tunnel,
+                                UP,
+                                builder.setInterface(
+                                                interfaceBuilder
+                                                        .addAddress(InetNetwork.parse(item.getTunnelIp()))
+                                                        .parsePrivateKey(configModel.getTunnelPrivateKey())
+                                                        .addDnsServer(InetAddress.getByName(configModel.getTunnelDNS()))
+                                                        .build()
+                                        )
+                                        .addPeer(
+                                                peerBuilder
+                                                        .addAllowedIps(allowedIp)
+                                                        .setEndpoint(InetEndpoint.parse(configModel.getRemoteIp() + ":" + configModel.getRemotePort()))
+                                                        .parsePreSharedKey(configModel.getPsk())
+                                                        .parsePublicKey(configModel.getPublicKey())
+                                                        .parsePersistentKeepalive("7")
+                                                        .build()
+                                        )
+                                        .build()
+                        );
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                callback.onWifiStateChanged(true, checkIfAnyWifiIsTrusted(), configModel, item);
+                            }
+                        });
+//                        } catch (Exception e) {
+//                            Log.e("Exception", "" + e.toString() + " " + Arrays.toString(e.getStackTrace()));
+//                            activity.runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    callback.onError(e.toString());
+//                                }
+//                            });
+//                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

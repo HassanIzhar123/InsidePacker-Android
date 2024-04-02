@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#5BEBE7F9"
-    tools:context=".activities.SupportActivity">
+    tools:context="">
 
     <RelativeLayout
         android:id="@+id/upper_layout"
@@ -132,7 +132,7 @@
                         android:layout_below="@+id/live_chat_text"
                         android:layout_marginTop="10dp"
                         android:fontFamily="@font/montserrat_medium"
-                        android:text="@string/read_step_by_step"
+                        android:text="@string/start_to_chat_description"
                         android:textColor="#0E0139"
                         android:textSize="14sp" />
 
@@ -231,17 +231,6 @@
                         android:text="@string/send_crash_reports"
                         android:textColor="#0E0139"
                         android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/send_crash_steps_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@+id/send_crash_text"
-                        android:layout_marginTop="10dp"
-                        android:fontFamily="@font/montserrat_medium"
-                        android:text="@string/read_step_by_step"
-                        android:textColor="#0E0139"
-                        android:textSize="14sp" />
 
                 </RelativeLayout>
 

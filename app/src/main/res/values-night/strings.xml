@@ -59,4 +59,7 @@
     <string name="access_organization_resources">Access Organization\nResources</string>
     <string name="not_trusted_cloud_image">not_trusted_cloud_image</string>
     <string name="time_left">Time left:</string>
+    <string name="start_to_chat_description">Start to chat with an insidepacket expert about any and all needs</string>
+    <string name="reset_agent">Reset agent</string>
+    <string name="confirm_password_text_field_hint">Confirm Password</string>
 </resources>

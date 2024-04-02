@@ -98,6 +98,7 @@ public class SignInActivity extends AppCompatActivity {
         basicInformation.setTenantName(demo);
         return basicInformation;
     }
+
     private void initializeViewModels() {
         progressDialog = new Utils().showProgressDialog(SignInActivity.this);
         signInViewModel.getAccessTokenMutableLiveData().observe(mContext, new Observer<AccessToken>() {
@@ -117,7 +118,13 @@ public class SignInActivity extends AppCompatActivity {
             public void onChanged(String s) {
                 try {
                     JSONObject object = new JSONObject(s);
-                    Toast.makeText(SignInActivity.this, object.getString("detail"), Toast.LENGTH_SHORT).show();
+                    String exceptionDetail = object.getString("detail");
+                    if (exceptionDetail.equals("Password is expired")) {
+                        Toast.makeText(SignInActivity.this, "Password is expired", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(SignInActivity.this, ResetPasswordActivity.class));
+                    } else {
+                        Toast.makeText(SignInActivity.this, exceptionDetail, Toast.LENGTH_SHORT).show();
+                    }
                 } catch (JSONException e) {
 //                    throw new RuntimeException(e);
                 }

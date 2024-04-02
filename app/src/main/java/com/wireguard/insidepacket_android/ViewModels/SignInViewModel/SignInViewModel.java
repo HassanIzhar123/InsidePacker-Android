@@ -42,6 +42,27 @@ public class SignInViewModel extends AndroidViewModel {
             public void onSuccess(JSONObject result) {
                 Log.e("onSuccess", "" + result.toString());
                 accessTokenMutableLiveData.postValue(new Gson().fromJson(result.toString(), AccessToken.class));
+//                errorMutableLiveData.postValue("");
+            }
+
+            @Override
+            public void onSuccess(JSONObject tenantListResult, JSONObject configResult) {
+
+            }
+
+            @Override
+            public void onError(String message) {
+                Log.e("onSuccess", "" + message);
+                errorMutableLiveData.postValue(message);
+            }
+        });
+    }
+    public void resetPassword(Context context, BasicInformation basicInformation) {
+        mainHomeRepo.resetPassword(context, basicInformation, new ViewModelCallBacks() {
+            @Override
+            public void onSuccess(JSONObject result) {
+                Log.e("onSuccess", "" + result.toString());
+                accessTokenMutableLiveData.postValue(new Gson().fromJson(result.toString(), AccessToken.class));
             }
 
             @Override

@@ -32,7 +32,6 @@ import com.wireguard.insidepacket_android.R;
 import com.wireguard.insidepacket_android.activities.SplashActivity;
 import com.wireguard.insidepacket_android.models.ConnectedTunnelModel.ConnectedTunnelModel;
 import com.wireguard.insidepacket_android.models.settings.SettingsModel;
-import com.wireguard.insidepacket_android.services.MyVpnService;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;

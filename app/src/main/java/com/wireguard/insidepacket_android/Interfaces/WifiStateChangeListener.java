@@ -4,6 +4,7 @@ import com.wireguard.insidepacket_android.models.ConfigModel.ConfigModel;
 import com.wireguard.insidepacket_android.models.UserTenants.Item;
 
 public interface WifiStateChangeListener {
+    void onConnectionStart();
     void onWifiStateChanged(boolean isConnected, boolean isTrusted, ConfigModel configModel, Item item);
 
     void onTrafficSent(String traffic, String publicIp, String tunnelIp);

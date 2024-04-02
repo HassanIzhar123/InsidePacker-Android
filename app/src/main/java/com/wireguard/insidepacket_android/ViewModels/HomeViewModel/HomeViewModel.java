@@ -1,18 +1,33 @@
 package com.wireguard.insidepacket_android.ViewModels.HomeViewModel;
 
+import static com.wireguard.android.backend.Tunnel.State.DOWN;
+import static com.wireguard.android.backend.Tunnel.State.UP;
+import static com.wireguard.insidepacket_android.utils.AppStrings._PREFS_NAME;
+
 import android.app.Application;
+import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.gson.Gson;
+import com.wireguard.android.backend.Backend;
+import com.wireguard.android.backend.Tunnel;
+import com.wireguard.insidepacket_android.activities.MainActivity;
+import com.wireguard.insidepacket_android.activities.SplashActivity;
+import com.wireguard.insidepacket_android.essentials.PersistentConnectionProperties;
 import com.wireguard.insidepacket_android.models.ConfigModel.ConfigModel;
 import com.wireguard.insidepacket_android.Interfaces.ViewModelCallBacks;
+import com.wireguard.insidepacket_android.models.ConnectedTunnelModel.ConnectedTunnelModel;
 import com.wireguard.insidepacket_android.models.ConnectionModel.ConnectionModel;
 import com.wireguard.insidepacket_android.models.UserTenants.UserTenants;
 import com.wireguard.insidepacket_android.repository.HomeRepo;
+import com.wireguard.insidepacket_android.utils.Utils;
 
 import org.json.JSONObject;
 
@@ -127,6 +142,7 @@ public class HomeViewModel extends AndroidViewModel {
             }
         });
     }
+
     public void accessOrganization(Context context, String accessToken, String tunnel, String tunnelId, String username) {
         Needle.onBackgroundThread().execute(new Runnable() {
             @Override
@@ -143,8 +159,6 @@ public class HomeViewModel extends AndroidViewModel {
 
                     @Override
                     public void onError(String message) {
-                        //for testing only
-                        accessOrganizationLiveData.postValue("180000");
                         timeLeftErrorLiveData.postValue(message);
                     }
                 });
@@ -154,5 +168,31 @@ public class HomeViewModel extends AndroidViewModel {
 
     public void transferData(Object data) {
         dataTransferMutableLiveData.postValue(data);
+    }
+
+    public void resetAgent(Context context) {
+        _disconnectVpn(context);
+    }
+
+    public void _disconnectVpn(Context context) {
+        try {
+            Backend backend = PersistentConnectionProperties.getInstance().getBackend();
+            Tunnel tunnel = PersistentConnectionProperties.getInstance().getTunnel();
+            backend.setState(tunnel, DOWN, null);
+            ConnectedTunnelModel connectedTunnelModel = new ConnectedTunnelModel();
+            connectedTunnelModel.setConnected(false);
+            new Utils().saveConnectedTunnel(context, connectedTunnelModel);
+            SharedPreferences sharedPreferences = context.getSharedPreferences(_PREFS_NAME, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.clear();
+            editor.apply();
+            editor.commit();
+            context.startActivity(new Intent(context, MainActivity.class));
+        } catch (Exception e) {
+            Log.e("wifireciever", e.toString() + "" + e.getStackTrace().toString());
+        }
+//                mContext.unregisterReceiver(wifiReceiver);
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancelAll();
     }
 }

@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
@@ -38,6 +39,7 @@ public class NetworkSettingsFragment extends Fragment {
     RecyclerView recyclerView;
     TextView emptyWifiText;
     SwitchCompat alwaysOnVpnSwitch;
+    Button resetAgentButton;
     MultiSelectionRecyclerViewAdapter adapter;
     List<TrustedWifi> wifiList;
     Boolean isAlwaysOnVpnSwitchTouched = false;
@@ -120,11 +122,18 @@ public class NetworkSettingsFragment extends Fragment {
                 }
             });
         }
+        resetAgentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                homeViewModel.resetAgent(getContext());
+            }
+        });
     }
 
     private void initializeComponents() {
         recyclerView = view.findViewById(R.id.tunnel_recyclerview);
         emptyWifiText = view.findViewById(R.id.empty_wifi_text);
         alwaysOnVpnSwitch = view.findViewById(R.id.always_on_vpn_switch);
+        resetAgentButton = view.findViewById(R.id.reset_agent_button);
     }
 }

@@ -1,13 +1,10 @@
 package com.wireguard.insidepacket_android.fragments;
 
 import static android.content.Context.RECEIVER_EXPORTED;
-import static android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK;
-import static androidx.core.app.ServiceCompat.stopForeground;
+import static androidx.core.app.ActivityCompat.startActivityForResult;
 import static androidx.core.content.ContextCompat.registerReceiver;
 import static androidx.core.content.ContextCompat.startForegroundService;
-import static com.wireguard.android.backend.Tunnel.State.DOWN;
 import static com.wireguard.android.backend.Tunnel.State.UP;
-import static com.wireguard.insidepacket_android.utils.AppStrings.CHANNEL_ID;
 import static com.wireguard.insidepacket_android.utils.AppStrings._ACCESS_TOKEN;
 import static com.wireguard.insidepacket_android.utils.AppStrings._PREFS_NAME;
 import static com.wireguard.insidepacket_android.utils.AppStrings._USER_INFORMATION;
@@ -18,25 +15,19 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Dialog;
-import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,23 +42,14 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
 import com.wireguard.android.backend.Backend;
 import com.wireguard.android.backend.GoBackend;
-import com.wireguard.android.backend.Tunnel;
-import com.wireguard.config.Config;
-import com.wireguard.config.InetEndpoint;
-import com.wireguard.config.InetNetwork;
-import com.wireguard.config.Interface;
-import com.wireguard.config.Peer;
 import com.wireguard.insidepacket_android.Interfaces.WifiStateChangeListener;
 import com.wireguard.insidepacket_android.R;
 import com.wireguard.insidepacket_android.ViewModels.HomeViewModel.HomeViewModel;
-import com.wireguard.insidepacket_android.activities.SplashActivity;
 import com.wireguard.insidepacket_android.essentials.PersistentConnectionProperties;
 import com.wireguard.insidepacket_android.essentials.SettingsSingleton;
 import com.wireguard.insidepacket_android.essentials.WgTunnel;
@@ -78,15 +60,11 @@ import com.wireguard.insidepacket_android.models.UserTenants.Item;
 import com.wireguard.insidepacket_android.models.settings.SettingsModel;
 import com.wireguard.insidepacket_android.models.settings.TrustedWifi;
 import com.wireguard.insidepacket_android.services.BroadcastService;
-import com.wireguard.insidepacket_android.services.MyVpnService;
 import com.wireguard.insidepacket_android.services.WifiReceiver;
 import com.wireguard.insidepacket_android.utils.DebouncedOnClickListener;
 import com.wireguard.insidepacket_android.utils.PreferenceManager;
 import com.wireguard.insidepacket_android.utils.Utils;
 
-import org.json.JSONObject;
-
-import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -96,7 +74,6 @@ import java.util.TimeZone;
 import needle.Needle;
 
 public class HomeFragment extends Fragment {
-    private static final int NOTIFICATION_ID = 00010;
     View view;
     AppCompatActivity mContext;
     HomeViewModel homeViewModel;
@@ -147,7 +124,25 @@ public class HomeFragment extends Fragment {
             progressDialog.dismiss();
         }
         progressDialog = new Utils().showProgressDialog(mContext);
+        Intent intentPrepare = GoBackend.VpnService.prepare(mContext);
+        if (intentPrepare != null) {
+            startActivityForResult(intentPrepare, 0);
+        } else {
+            onActivityResult(0, -1, null);
+        }
+    }
+
+    //make onactivity result
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.e("showingresult", "" + requestCode + " " + resultCode + " " + data);
         wifiReceiver = new WifiReceiver(getActivity(), new WifiStateChangeListener() {
+            @Override
+            public void onConnectionStart() {
+
+            }
+
             @Override
             public void onWifiStateChanged(boolean isConnected, boolean isTrusted, ConfigModel configModel, Item item) {
                 currentItem = item;
@@ -234,6 +229,7 @@ public class HomeFragment extends Fragment {
                 }, delay);
             }
         }
+//        wifiReceiver.ongetApproval(requestCode, resultCode, data);
     }
 
     public void disconnectVpn() {
@@ -351,8 +347,10 @@ public class HomeFragment extends Fragment {
                         Log.e("isServiceRunning", "" + isServiceRunning);
                         if (isServiceRunning) {
                             handleCancelTimer();
+                            toggleViews(true, true);
+                        } else {
+                            connectAlwaysOnVpn();
                         }
-                        toggleViews(true, true);
                     } else {
                         disconnectVpn();
                         toggleViews(false, false);
